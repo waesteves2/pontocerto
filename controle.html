@@ -1,0 +1,656 @@
+
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <title>Cartão de Ponto</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+  <style>
+    body {
+      font-family:'Courier New', Courier, monospace;
+    }
+
+    h1 {
+      text-align: center;
+    }
+
+    #punch-in-out {
+      text-align: center;
+    }
+
+    #punch-in-out input {
+      margin-top: 10px;
+    }
+
+    #report {
+      margin-top: 20px;
+      text-align: center;
+    }
+
+    #report table {
+      margin: 0 auto;
+      border-collapse: collapse;
+      font-size: small;
+
+    }
+
+    #report table th,
+    #report table td {
+      border: 1px solid #000;
+    }
+
+    #employee-id {
+      padding: 10px;
+      border-radius: 5px;
+    }
+
+    .checkmark {
+      display: inline-block;
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid #000;
+      background-color: #2ecc71;
+      animation: checkmark 3s linear;
+    }
+
+    @keyframes checkmark {
+      0% {
+        transform: scale(0);
+        opacity: 0;
+      }
+      50% {
+        transform: scale(1.2);
+        opacity: 1;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 0;
+      }
+    }
+
+    #employee-report {
+      text-align: center;
+      font-size: 18px;
+    }
+
+    #reset-button {
+      margin-top: 10px;
+    }
+
+    .checkmark-wrapper {
+      position: fixed;
+      top: 75%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+      width: 10cm;
+      height: 10cm;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    .checkmark-wrapper img {
+      max-width: 30%;
+      max-height: 70%;
+    }
+
+    .checkmark-wrapper span {
+      font-size: 20px;
+      margin-top: 10px;
+    }
+
+    .day-of-week {
+      color: rgb(8, 8, 8);
+    }
+
+    button {
+  padding: 10px 20px;
+  background-color: #0984e3;
+  color: #ffffff;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Arial', sans-serif;
+  font-size: 14px;
+  cursor: pointer;
+  margin-right: 10px;
+}
+
+#reset-button {
+  background-color: #d63031;
+}
+
+#employee-select {
+        width: 230px;
+        padding: 10px;
+        font-size: 16px;
+        border: 1px solid #ccc;
+        border-radius: 3px;
+    }
+
+    #employee-report {
+        padding: 10px;
+    }
+
+    #report {
+        background-color: #f5f5f5;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+    }
+
+
+    
+
+  </style>
+</head>
+<body>
+
+  <div id="punch-in-out">
+    <label for="employee-id">Código de Matrícula:</label><br>
+    <input type="text" id="employee-id" autofocus onkeydown="registerPunch(event)">
+  </div>
+  <div id="report">
+    <h2>Cartão de Ponto</h2>
+    <select id="employee-select" onchange="generateReport()">
+      <option value="">Selecione um colaborador</option>
+      <option value="11118">Welton Alves Esteves</option>
+      <option value="002">Beatriz Fernanda Veratti</option>
+    </select><br><br>
+    <div id="employee-report"></div>
+    <button onclick="generatePDF()">Gerar PDF</button>
+    <button id="reset-button" onclick="confirmReset()">Resetar</button>
+  </div>
+
+  <!-- Container da imagem do checkmark -->
+  <div id="checkmark-wrapper" class="checkmark-wrapper" style="display: none;">
+    <img id="checkmark-image" src="https://imagepng.org/wp-content/uploads/2019/12/check-icone-3.png" alt="Checkmark">
+    <span id="checkmark-text"></span>
+  </div>
+
+  <script>
+    var resetButton = document.getElementById("reset-button");
+
+    function confirmReset() {
+      var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
+
+      if (confirmation) {
+        resetPunches();
+      }
+    }
+
+    function resetPunches() {
+      punches = [];
+      localStorage.removeItem("punches");
+      generateReport();
+    }
+  </script>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/pt-br.js"></script>
+  <script>
+    function buscarColaborador(codigo) {
+      const colaboradores = {
+        '11118': {
+          nome: 'Welton Alves Esteves',
+          cpf: '401.260.068-06',
+          horarios: {
+            entradaManha: { inicio: '07:00', fim: '09:30' },
+            saidaManha: { inicio: '11:00', fim: '12:20' },
+            entradaTarde: { inicio: '13:00', fim: '15:00' },
+            saidaTarde: { inicio: '17:00', fim: '20:30' },
+          },
+        },
+        '002': {
+          nome: 'Beatriz Fernanda Veratti',
+          cpf: '222.222.222-22',
+          horarios: {
+            entradaManha: { inicio: '07:00', fim: '09:30' },
+            saidaManha: { inicio: '11:00', fim: '12:20' },
+            entradaTarde: { inicio: '13:00', fim: '15:00' },
+            saidaTarde: { inicio: '17:00', fim: '19:00' },
+          },
+        },
+        
+        // Adicione outros colaboradores aqui...
+      };
+
+      return colaboradores[codigo];
+    }
+
+    var employees = [
+      { id: "11118", name: "Welton Alves Esteves", jornada: 8.48 },
+      { id: "002", name: "Beatriz Fernanda Veratti", jornada: 8.48 },
+    ];
+
+    var punches = [];
+
+    if (typeof Storage !== "undefined") {
+      var punchesData = localStorage.getItem("punches");
+      if (punchesData) {
+        punches = JSON.parse(punchesData);
+      }
+    } else {
+      alert("Seu navegador não suporta o recurso de Local Storage. Por favor, atualize-o.");
+    }
+
+   function registerPunch(event) {
+  if (event.keyCode === 13) {
+    var employeeId = document.getElementById("employee-id").value;
+    var employee = getEmployeeById(employeeId);
+
+    if (employee) {
+      var date = new Date().toLocaleDateString();
+      var time = new Date().toLocaleTimeString();
+
+      var punchType = getPunchType(time, employeeId);
+      var lastPunch = getLastPunch(employeeId);
+
+      if (lastPunch && lastPunch.date === date) {
+        // Atualiza o registro existente caso seja do mesmo dia
+        if (punchType === "entrada_manha" && lastPunch.punchType === "entrada_manha") {
+          lastPunch.time = time;
+        } else if (punchType === "saida_manha" && lastPunch.punchType === "saida_manha") {
+          lastPunch.time = time;
+        } else if (punchType === "entrada_tarde" && lastPunch.punchType === "entrada_tarde") {
+          lastPunch.time = time;
+        } else if (punchType === "saida_tarde" && lastPunch.punchType === "saida_tarde") {
+          lastPunch.time = time;
+        } else if (punchType === "extra" && lastPunch.punchType === "extra") {
+          lastPunch.time = time;
+        } else if (punchType === "horas_trabalhadas" && lastPunch.punchType === "horas_trabalhadas") {
+          lastPunch.time = time;
+        } else {
+          // Adiciona um novo registro na célula do lado
+          punches.splice(punches.indexOf(lastPunch) + 1, 0, {
+            employeeId: employeeId,
+            employeeName: employee.name,
+            date: date,
+            time: time,
+            punchType: punchType
+          });
+        }
+      } else {
+        // Adiciona um novo registro
+        punches.push({
+          employeeId: employeeId,
+          employeeName: employee.name,
+          date: date,
+          time: time,
+          punchType: punchType
+        });
+      }
+
+      localStorage.setItem("punches", JSON.stringify(punches));
+      document.getElementById("employee-id").value = "";
+
+      showCheckmark(employee.name);
+      generateReport();
+    } else {
+      alert("Colaborador não encontrado. Verifique o código de matrícula digitado.");
+    }
+  }
+}
+function registerPunch(event) {
+  if (event.keyCode === 13) {
+    var employeeId = document.getElementById("employee-id").value;
+    var employee = getEmployeeById(employeeId);
+
+    if (employee) {
+      var date = new Date().toLocaleDateString();
+      var time = new Date().toLocaleTimeString();
+
+      var punchType = getPunchType(time, employeeId);
+      var lastPunch = getLastPunch(employeeId);
+
+      if (lastPunch && lastPunch.date === date) {
+        // Atualiza o registro existente caso seja do mesmo dia
+        if (punchType === "entrada_manha" && lastPunch.punchType === "entrada_manha") {
+          lastPunch.time = time;
+        } else if (punchType === "saida_manha" && lastPunch.punchType === "saida_manha") {
+          lastPunch.time = time;
+        } else if (punchType === "entrada_tarde" && lastPunch.punchType === "entrada_tarde") {
+          lastPunch.time = time;
+        } else if (punchType === "saida_tarde" && lastPunch.punchType === "saida_tarde") {
+          lastPunch.time = time;
+        } else if (punchType === "extra" && lastPunch.punchType === "extra") {
+          lastPunch.time = time;
+        } else if (punchType === "horas_trabalhadas" && lastPunch.punchType === "horas_trabalhadas") {
+          lastPunch.time = time;
+        } else {
+          // Adiciona um novo registro na célula do lado
+          punches.splice(punches.indexOf(lastPunch) + 1, 0, {
+            employeeId: employeeId,
+            employeeName: employee.name,
+            date: date,
+            time: time,
+            punchType: punchType
+          });
+        }
+      } else {
+        // Adiciona um novo registro
+        punches.push({
+          employeeId: employeeId,
+          employeeName: employee.name,
+          date: date,
+          time: time,
+          punchType: punchType
+        });
+      }
+
+      localStorage.setItem("punches", JSON.stringify(punches));
+      document.getElementById("employee-id").value = "";
+
+      showCheckmark(employee.name);
+      generateReport();
+    } else {
+      alert("Colaborador não encontrado. Verifique o código de matrícula digitado.");
+    }
+  }
+}
+
+function generateReport() {
+  var employeeSelect = document.getElementById("employee-select");
+  var selectedEmployeeId = employeeSelect.value;
+  var employeeReport = document.getElementById("employee-report");
+  employeeReport.innerHTML = "";
+
+  if (selectedEmployeeId) {
+    var punchesFiltered = punches.filter(function (punch) {
+      return punch.employeeId === selectedEmployeeId;
+    });
+
+    var table = document.createElement("table");
+    table.classList.add("report-table");
+
+    var headerRow = document.createElement("tr");
+    var headers = [
+      "Data",
+      "Dia da Semana",
+      "Entrada Manhã",
+      "Saída Manhã",
+      "Entrada Tarde",
+      "Saída Tarde",
+      "Horas Trabalhadas",
+      "Hora Extra"
+    ];
+
+    headers.forEach(function (headerText) {
+      var headerCell = document.createElement("th");
+      headerCell.textContent = headerText;
+      headerRow.appendChild(headerCell);
+    });
+
+    table.appendChild(headerRow);
+
+    var punchTypes = ["entrada_manha", "saida_manha", "entrada_tarde", "saida_tarde", "horas_trabalhadas", "extra"];
+
+    var firstPunchDate = punchesFiltered.length > 0 ? punchesFiltered[0].date : null;
+    var lastPunchDate = punchesFiltered.length > 0 ? punchesFiltered[punchesFiltered.length - 1].date : null;
+
+    if (firstPunchDate && lastPunchDate) {
+      var currentDate = moment(firstPunchDate, "DD/MM/YYYY");
+      var lastPunchIndex = 0;
+      var totalHoursWorked = 0;
+      var totalExtraHours = 0;
+
+      while (currentDate.isSameOrBefore(moment(lastPunchDate, "DD/MM/YYYY"))) {
+        var row = document.createElement("tr");
+
+        var dateCell = document.createElement("td");
+        dateCell.textContent = currentDate.format("DD/MM/YYYY");
+        row.appendChild(dateCell);
+
+        var dayOfWeekCell = document.createElement("td");
+        dayOfWeekCell.textContent = currentDate.format("dddd");
+        row.appendChild(dayOfWeekCell);
+
+        punchTypes.forEach(function (punchType) {
+          var timeCell = document.createElement("td");
+
+          if (lastPunchIndex < punchesFiltered.length) {
+            var punch = punchesFiltered[lastPunchIndex];
+
+            if (punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === punchType) {
+              timeCell.textContent = punch.time;
+              lastPunchIndex++;
+            } else {
+              timeCell.textContent = "-";
+            }
+          } else {
+            timeCell.textContent = "-";
+          }
+
+          row.appendChild(timeCell);
+        });
+
+        if (currentDate.format("dddd") !== "Saturday" && currentDate.format("dddd") !== "Sunday") {
+          var entryMorning = punchesFiltered.find(function (punch) {
+            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
+          });
+
+          var exitMorning = punchesFiltered.find(function (punch) {
+            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
+          });
+
+          var entryAfternoon = punchesFiltered.find(function (punch) {
+            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
+          });
+
+          var exitAfternoon = punchesFiltered.find(function (punch) {
+            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
+          });
+
+          var workingHours = 0;
+
+          if (entryMorning && exitMorning && entryAfternoon && exitAfternoon) {
+            workingHours =
+              moment(exitMorning.time, "HH:mm").diff(moment(entryMorning.time, "HH:mm"), "hours", true) +
+              moment(exitAfternoon.time, "HH:mm").diff(moment(entryAfternoon.time, "HH:mm"), "hours", true) -
+              moment(exitMorning.time, "HH:mm").diff(moment(entryAfternoon.time, "HH:mm"), "hours", true);
+          }
+
+          var extraHours = 0;
+
+          if (exitAfternoon && exitAfternoon) {
+            extraHours = moment(exitAfternoon.time, "HH:mm").diff(moment(entryAfternoon.fim, "HH:mm"), "hours", true);
+          }
+
+          totalHoursWorked += workingHours;
+          totalExtraHours += extraHours;
+        }
+
+        table.appendChild(row);
+
+        currentDate.add(1, "day");
+      }
+
+      var summaryRow = document.createElement("tr");
+      var summaryCell = document.createElement("td");
+      summaryCell.setAttribute("colspan", "6");
+      summaryCell.style.textAlign = "right";
+      summaryCell.style.fontWeight = "bold";
+      summaryCell.textContent = "Total de Horas Trabalhadas:";
+      summaryRow.appendChild(summaryCell);
+
+      var totalHoursCell = document.createElement("td");
+      totalHoursCell.style.fontWeight = "bold";
+      totalHoursCell.textContent = totalHoursWorked.toFixed(2);
+      summaryRow.appendChild(totalHoursCell);
+
+      var totalExtraCell = document.createElement("td");
+      totalExtraCell.style.fontWeight = "bold";
+      totalExtraCell.textContent = totalExtraHours.toFixed(2);
+      summaryRow.appendChild(totalExtraCell);
+
+      table.appendChild(summaryRow);
+    }
+
+    employeeReport.appendChild(table);
+  }
+}
+
+    function getEmployeeById(employeeId) {
+      return employees.find(function (employee) {
+        return employee.id === employeeId;
+      });
+    }
+    function getPunchType(time, employeeId) {
+  var employee = buscarColaborador(employeeId);
+  var horarios = employee.horarios;
+
+  if (time >= horarios.entradaManha.inicio && time <= horarios.entradaManha.fim) {
+    return "entrada_manha";
+  } else if (time >= horarios.saidaManha.inicio && time <= horarios.saidaManha.fim) {
+    return "saida_manha";
+  } else if (time >= horarios.entradaTarde.inicio && time <= horarios.entradaTarde.fim) {
+    return "entrada_tarde";
+  } else if (time >= horarios.saidaTarde.inicio && time <= horarios.saidaTarde.fim) {
+    return "saida_tarde";
+  } else if (time > horarios.saidaTarde.fim && time < horarios.entradaTarde.inicio) {
+    return "extra";
+  } else {
+    return "horas_trabalhadas";
+  }
+}
+
+
+    function getLastPunch(employeeId) {
+      var punchesFiltered = punches.filter(function (punch) {
+        return punch.employeeId === employeeId;
+      });
+
+      if (punchesFiltered.length > 0) {
+        return punchesFiltered[punchesFiltered.length - 1];
+      } else {
+        return null;
+      }
+    }
+
+    function showCheckmark(employeeName) {
+      var checkmarkWrapper = document.getElementById("checkmark-wrapper");
+      var checkmarkImage = document.getElementById("checkmark-image");
+      var checkmarkText = document.getElementById("checkmark-text");
+
+      checkmarkText.innerText = employeeName;
+      checkmarkWrapper.style.display = "flex";
+
+      setTimeout(function () {
+        checkmarkWrapper.style.display = "none";
+      }, 3000);
+    }
+
+    function generatePDF() {
+  var employeeSelect = document.getElementById("employee-select");
+  var employeeId = employeeSelect.value;
+  var employee = getEmployeeById(employeeId);
+  var reportContainer = document.getElementById("employee-report");
+  var reportHTML = reportContainer.innerHTML;
+
+  if (employee) {
+    // Cria uma div temporária para armazenar o conteúdo completo do relatório
+    var tempDiv = document.createElement("div");
+
+    // Adiciona o logo da empresa à div temporária
+    var logoImg = document.createElement("img");
+    logoImg.src = "./Logo Rosseto.jpg";
+    logoImg.style.width = "200px"; // Defina o tamanho adequado para o logo
+    logoImg.style.marginBottom = "20px"; // Adicione margem inferior para separar do próximo elemento
+    tempDiv.appendChild(logoImg);
+
+    // Adiciona o nome da empresa
+    var companyName = document.createElement("h2");
+    companyName.innerText = "Rosseto & Araujo Transportes LTDA"; // Substitua pelo nome correto da empresa
+    companyName.style.marginBottom = "10px"; // Adicione margem inferior para separar do próximo elemento
+    companyName.style.color = "black"; // Altera a cor do nome da empresa para azul
+    tempDiv.appendChild(companyName);
+
+    // Adiciona o CNPJ da empresa
+    var cnpj = document.createElement("p");
+    cnpj.innerText = "CNPJ: 08.712.160/0001-75"; // Substitua pelo CNPJ correto da empresa
+    cnpj.style.marginBottom = "20px"; // Adicione margem inferior para separar do próximo elemento
+    tempDiv.appendChild(cnpj);
+
+    // Adiciona o conteúdo do relatório após as informações da empresa
+    tempDiv.innerHTML += reportHTML;
+
+    // Adiciona uma linha para assinatura do colaborador
+    var signatureLine = document.createElement("hr");
+    signatureLine.style.marginTop = "50px"; // Adicione margem superior para separar do conteúdo do relatório
+    tempDiv.appendChild(signatureLine);
+
+    // Adiciona o nome do colaborador
+    var employeeName = document.createElement("p");
+    employeeName.style.marginBottom = "10px"; // Adicione margem inferior para separar do próximo elemento
+    employeeName.innerText = "Colaborador: " + employee.name; // Adiciona o nome do colaborador
+    tempDiv.appendChild(employeeName);
+
+    // Adiciona o CPF do colaborador
+    var employeeCPF = document.createElement("p");
+    employeeCPF.innerText = "CPF: 123.456.789-00"; // Substitua pelo CPF correto do colaborador
+    tempDiv.appendChild(employeeCPF);
+
+    var opt = {
+      margin: [0.5, 0.5, 0.5, 1], // Adicione margem inferior maior para acomodar as informações do colaborador
+      filename: employee.name + "_cartao_ponto.pdf",
+      image: { type: 'jpeg', quality: 1 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
+      pagebreak: { mode: 'avoid-all' },
+      html2pdf: {
+        font: { size: 10 }, // Altera o tamanho da fonte do registro para menor
+        image: { type: 'jpeg', quality: 0.98 },
+        page: { size: 'letter', margin: { top: '0.5in', right: '0.5in', bottom: '1in', left: '0.5in' } }
+      },
+      css: `
+        /* CSS personalizado */
+        body {
+          font-family:'Courier New', Courier, monospace;
+          font-size: 12px;
+          color: #333;
+        }
+        
+        h2 {
+          font-size: 16px;
+          font-weight: bold;
+          margin-bottom: 10px;
+          color: blue;
+        }
+        
+        p {
+          margin-bottom: 5px;
+        }
+
+        table {
+          border-collapse: collapse;
+          width: 100%;
+        }
+
+        th, td {
+          border: 1px solid black;
+          padding: 8px;
+          text-align: left;
+        }
+        
+        /* Adicione mais estilos personalizados conforme necessário */
+
+        /* Fim do CSS personalizado */
+      `
+    };
+
+    html2pdf().set(opt).from(tempDiv.outerHTML).save();
+  } else {
+    alert("Selecione um colaborador para gerar o relatório.");
+  }
+}
+
+generatePDF();
+
+    
+  </script>
+</body>
+</html>
