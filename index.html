@@ -455,7 +455,7 @@ function generateReport() {
         if (entryMorningCell.textContent !== "-" && exitMorningCell.textContent !== "-") {
           var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
           var morningExitTime = moment(exitMorningCell.textContent, "HH:mm");
-          var totalMorningHours = morningExitTime.diff(morningEntryTime, "hours", true);
+          var totalMorningHours = morningExitTime.diff(morningEntryTime, "seconds");
         } else {
           var totalMorningHours = 0;
         }
@@ -463,23 +463,23 @@ function generateReport() {
         if (entryAfternoonCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
           var afternoonEntryTime = moment(entryAfternoonCell.textContent, "HH:mm");
           var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
-          var totalAfternoonHours = afternoonExitTime.diff(afternoonEntryTime, "hours", true);
+          var totalAfternoonHours = afternoonExitTime.diff(afternoonEntryTime, "seconds");
         } else {
           var totalAfternoonHours = 0;
         }
 
-        var totalHours = totalMorningHours + totalAfternoonHours;
-        var expectedTotalHours = 8.48; // Defina a carga horária esperada por dia
-        var extraHours = totalHours - expectedTotalHours;
+        var totalSeconds = totalMorningHours + totalAfternoonHours;
+        var expectedTotalSeconds = 8.48 * 3600; // Defina a carga horária esperada em segundos por dia
+        var extraSeconds = totalSeconds - expectedTotalSeconds;
 
-        totalHoursCell.textContent = totalHours.toFixed(2) + " h";
-        extraHoursCell.textContent = extraHours > 0 ? extraHours.toFixed(2) + " h" : "0.00 h";
+        totalHoursCell.textContent = secondsToTimeString(totalSeconds);
+        extraHoursCell.textContent = extraSeconds > 0 ? secondsToTimeString(extraSeconds) : "00:00:00";
 
         if (entryMorningCell.textContent === "-" || exitMorningCell.textContent === "-" ||
             entryAfternoonCell.textContent === "-" || exitAfternoonCell.textContent === "-") {
-          absentHoursCell.textContent = expectedTotalHours.toFixed(2) + " h";
+          absentHoursCell.textContent = secondsToTimeString(expectedTotalSeconds);
         } else {
-          absentHoursCell.textContent = "0.00 h";
+          absentHoursCell.textContent = "00:00:00";
         }
 
         row.appendChild(entryMorningCell);
@@ -499,6 +499,14 @@ function generateReport() {
     employeeReport.appendChild(table);
   }
 }
+
+function secondsToTimeString(totalSeconds) {
+  var hours = Math.floor(totalSeconds / 3600);
+  var minutes = Math.floor((totalSeconds % 3600) / 60);
+  var seconds = totalSeconds % 60;
+  return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+}
+
 
     function getEmployeeById(employeeId) {
       return employees.find(function (employee) {
