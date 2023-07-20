@@ -375,8 +375,7 @@ function generateReport() {
       "Entrada Tarde",
       "Saída Tarde",
       "Horas Trabalhadas",
-      "Horas Extras",
-      "Horas Ausentes"
+      "Horas Extras"
     ];
 
     headers.forEach(function (headerText) {
@@ -410,7 +409,6 @@ function generateReport() {
         var exitAfternoonCell = document.createElement("td");
         var totalHoursCell = document.createElement("td");
         var extraHoursCell = document.createElement("td");
-        var absentHoursCell = document.createElement("td");
 
         entryMorningCell.textContent = "-";
         exitMorningCell.textContent = "-";
@@ -418,7 +416,6 @@ function generateReport() {
         exitAfternoonCell.textContent = "-";
         totalHoursCell.textContent = "-";
         extraHoursCell.textContent = "-";
-        absentHoursCell.textContent = "-";
 
         var morningEntry = punchesFiltered.find(function (punch) {
           return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
@@ -457,12 +454,18 @@ function generateReport() {
           var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
           var totalHours = afternoonExitTime.diff(morningEntryTime, "hours", true);
 
-          totalHoursCell.textContent = totalHours.toFixed(2);
-
           var expectedTotalHours = 8.48; // Defina a carga horária esperada por dia
           var extraHours = totalHours - expectedTotalHours;
-          extraHoursCell.textContent = extraHours > 0 ? extraHours.toFixed(2) : "0.00";
-          absentHoursCell.textContent = extraHours < 0 ? Math.abs(extraHours).toFixed(2) : "0.00";
+
+          if (totalHours > expectedTotalHours) {
+            // Se houver horas extras
+            totalHoursCell.textContent = expectedTotalHours.toFixed(2);
+            extraHoursCell.textContent = extraHours.toFixed(2);
+          } else {
+            // Se não houver horas extras
+            totalHoursCell.textContent = totalHours.toFixed(2);
+            extraHoursCell.textContent = "0.00";
+          }
         }
 
         row.appendChild(entryMorningCell);
@@ -471,7 +474,6 @@ function generateReport() {
         row.appendChild(exitAfternoonCell);
         row.appendChild(totalHoursCell);
         row.appendChild(extraHoursCell);
-        row.appendChild(absentHoursCell);
 
         table.appendChild(row);
 
@@ -482,7 +484,6 @@ function generateReport() {
     employeeReport.appendChild(table);
   }
 }
-
 
     function getEmployeeById(employeeId) {
       return employees.find(function (employee) {
