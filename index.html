@@ -374,9 +374,9 @@ function generateReport() {
       "Saída Manhã",
       "Entrada Tarde",
       "Saída Tarde",
-      "Horas Trabalhadas",
-      "Horas Extras",
-      "Horas Ausentes"
+      "Horas Trabalhadas Manhã",
+      "Horas Trabalhadas Tarde",
+      "Horas Extras"
     ];
 
     headers.forEach(function (headerText) {
@@ -408,17 +408,17 @@ function generateReport() {
         var exitMorningCell = document.createElement("td");
         var entryAfternoonCell = document.createElement("td");
         var exitAfternoonCell = document.createElement("td");
-        var totalHoursCell = document.createElement("td");
+        var totalMorningCell = document.createElement("td");
+        var totalAfternoonCell = document.createElement("td");
         var extraHoursCell = document.createElement("td");
-        var absentHoursCell = document.createElement("td");
 
         entryMorningCell.textContent = "-";
         exitMorningCell.textContent = "-";
         entryAfternoonCell.textContent = "-";
         exitAfternoonCell.textContent = "-";
-        totalHoursCell.textContent = "-";
+        totalMorningCell.textContent = "-";
+        totalAfternoonCell.textContent = "-";
         extraHoursCell.textContent = "-";
-        absentHoursCell.textContent = "-";
 
         var morningEntry = punchesFiltered.find(function (punch) {
           return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
@@ -452,33 +452,39 @@ function generateReport() {
           exitAfternoonCell.textContent = afternoonExit.time;
         }
 
-        if (entryMorningCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
+        if (entryMorningCell.textContent !== "-" && exitMorningCell.textContent !== "-") {
           var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
+          var morningExitTime = moment(exitMorningCell.textContent, "HH:mm");
+          var totalMorningHours = morningExitTime.diff(morningEntryTime, "hours", true);
+
+          totalMorningCell.textContent = totalMorningHours.toFixed(2);
+        }
+
+        if (entryAfternoonCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
+          var afternoonEntryTime = moment(entryAfternoonCell.textContent, "HH:mm");
           var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
-          var totalHours = afternoonExitTime.diff(morningEntryTime, "hours", true);
+          var totalAfternoonHours = afternoonExitTime.diff(afternoonEntryTime, "hours", true);
 
+          totalAfternoonCell.textContent = totalAfternoonHours.toFixed(2);
+        }
+
+        if (totalMorningCell.textContent !== "-" && totalAfternoonCell.textContent !== "-") {
           var expectedTotalHours = 8.48; // Defina a carga horária esperada por dia
+          var totalHours = parseFloat(totalMorningCell.textContent) + parseFloat(totalAfternoonCell.textContent);
           var extraHours = totalHours - expectedTotalHours;
-          var absentHours = expectedTotalHours - totalHours;
 
-          totalHoursCell.textContent = totalHours.toFixed(2);
-          extraHoursCell.textContent = extraHours > 0 ? extraHours.toFixed(2) : "0.00";
-          absentHoursCell.textContent = absentHours > 0 ? absentHours.toFixed(2) : "0.00";
-
-          if (extraHours < 0) {
-            totalHoursCell.textContent = expectedTotalHours.toFixed(2);
-            extraHoursCell.textContent = "0.00";
-            absentHoursCell.textContent = absentHours > 0 ? absentHours.toFixed(2) : "0.00";
-          }
+          totalMorningCell.textContent = totalMorningCell.textContent + " h";
+          totalAfternoonCell.textContent = totalAfternoonCell.textContent + " h";
+          extraHoursCell.textContent = extraHours > 0 ? extraHours.toFixed(2) + " h" : "0.00 h";
         }
 
         row.appendChild(entryMorningCell);
         row.appendChild(exitMorningCell);
         row.appendChild(entryAfternoonCell);
         row.appendChild(exitAfternoonCell);
-        row.appendChild(totalHoursCell);
+        row.appendChild(totalMorningCell);
+        row.appendChild(totalAfternoonCell);
         row.appendChild(extraHoursCell);
-        row.appendChild(absentHoursCell);
 
         table.appendChild(row);
 
@@ -489,7 +495,6 @@ function generateReport() {
     employeeReport.appendChild(table);
   }
 }
-
 
 
     function getEmployeeById(employeeId) {
