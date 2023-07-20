@@ -352,7 +352,6 @@ function registerPunch(event) {
     }
   }
 }
-
 function generateReport() {
   var employeeSelect = document.getElementById("employee-select");
   var selectedEmployeeId = employeeSelect.value;
@@ -376,7 +375,8 @@ function generateReport() {
       "Entrada Tarde",
       "Saída Tarde",
       "Horas Trabalhadas",
-      "Hora Extra"
+      "Horas Extras",
+      "Horas Ausentes"
     ];
 
     headers.forEach(function (headerText) {
@@ -387,16 +387,11 @@ function generateReport() {
 
     table.appendChild(headerRow);
 
-    var punchTypes = ["entrada_manha", "saida_manha", "entrada_tarde", "saida_tarde", "horas_trabalhadas", "extra"];
-
     var firstPunchDate = punchesFiltered.length > 0 ? punchesFiltered[0].date : null;
     var lastPunchDate = punchesFiltered.length > 0 ? punchesFiltered[punchesFiltered.length - 1].date : null;
 
     if (firstPunchDate && lastPunchDate) {
       var currentDate = moment(firstPunchDate, "DD/MM/YYYY");
-      var lastPunchIndex = 0;
-      var totalHoursWorked = 0;
-      var totalExtraHours = 0;
 
       while (currentDate.isSameOrBefore(moment(lastPunchDate, "DD/MM/YYYY"))) {
         var row = document.createElement("tr");
@@ -409,80 +404,79 @@ function generateReport() {
         dayOfWeekCell.textContent = currentDate.format("dddd");
         row.appendChild(dayOfWeekCell);
 
-        punchTypes.forEach(function (punchType) {
-          var timeCell = document.createElement("td");
+        var entryMorningCell = document.createElement("td");
+        var exitMorningCell = document.createElement("td");
+        var entryAfternoonCell = document.createElement("td");
+        var exitAfternoonCell = document.createElement("td");
+        var totalHoursCell = document.createElement("td");
+        var extraHoursCell = document.createElement("td");
+        var absentHoursCell = document.createElement("td");
 
-          if (lastPunchIndex < punchesFiltered.length) {
-            var punch = punchesFiltered[lastPunchIndex];
+        entryMorningCell.textContent = "-";
+        exitMorningCell.textContent = "-";
+        entryAfternoonCell.textContent = "-";
+        exitAfternoonCell.textContent = "-";
+        totalHoursCell.textContent = "-";
+        extraHoursCell.textContent = "-";
+        absentHoursCell.textContent = "-";
 
-            if (punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === punchType) {
-              timeCell.textContent = punch.time;
-              lastPunchIndex++;
-            } else {
-              timeCell.textContent = "-";
-            }
-          } else {
-            timeCell.textContent = "-";
-          }
-
-          row.appendChild(timeCell);
+        var morningEntry = punchesFiltered.find(function (punch) {
+          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
         });
 
-        if (currentDate.format("dddd") !== "Saturday" && currentDate.format("dddd") !== "Sunday") {
-          var entryMorning = punchesFiltered.find(function (punch) {
-            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
-          });
+        var morningExit = punchesFiltered.find(function (punch) {
+          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
+        });
 
-          var exitMorning = punchesFiltered.find(function (punch) {
-            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
-          });
+        var afternoonEntry = punchesFiltered.find(function (punch) {
+          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
+        });
 
-          var entryAfternoon = punchesFiltered.find(function (punch) {
-            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
-          });
+        var afternoonExit = punchesFiltered.find(function (punch) {
+          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
+        });
 
-          var exitAfternoon = punchesFiltered.find(function (punch) {
-            return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
-          });
-
-          var workingHours = 0;
-
-          if (entryMorning && exitMorning && entryAfternoon && exitAfternoon) {
-            var morningHours = moment(exitMorning.time, "HH:mm").diff(moment(entryMorning.time, "HH:mm"), "hours", true);
-            var afternoonHours = moment(exitAfternoon.time, "HH:mm").diff(moment(entryAfternoon.time, "HH:mm"), "hours", true);
-            workingHours = morningHours + afternoonHours;
-          }
-
-          if (workingHours >= 8) {
-            totalHoursWorked += workingHours - 1; // Subtrai 1 hora para o intervalo de almoço
-            totalExtraHours += workingHours - 8; // Calcula as horas extras (acima de 8 horas)
-          } else {
-            totalHoursWorked += workingHours;
-          }
+        if (morningEntry) {
+          entryMorningCell.textContent = morningEntry.time;
         }
+
+        if (morningExit) {
+          exitMorningCell.textContent = morningExit.time;
+        }
+
+        if (afternoonEntry) {
+          entryAfternoonCell.textContent = afternoonEntry.time;
+        }
+
+        if (afternoonExit) {
+          exitAfternoonCell.textContent = afternoonExit.time;
+        }
+
+        if (entryMorningCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
+          var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
+          var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
+          var totalHours = afternoonExitTime.diff(morningEntryTime, "hours", true);
+
+          totalHoursCell.textContent = totalHours.toFixed(2);
+
+          var expectedTotalHours = 8.48; // Defina a carga horária esperada por dia
+          var extraHours = totalHours - expectedTotalHours;
+          extraHoursCell.textContent = extraHours > 0 ? extraHours.toFixed(2) : "0.00";
+          absentHoursCell.textContent = extraHours < 0 ? Math.abs(extraHours).toFixed(2) : "0.00";
+        }
+
+        row.appendChild(entryMorningCell);
+        row.appendChild(exitMorningCell);
+        row.appendChild(entryAfternoonCell);
+        row.appendChild(exitAfternoonCell);
+        row.appendChild(totalHoursCell);
+        row.appendChild(extraHoursCell);
+        row.appendChild(absentHoursCell);
 
         table.appendChild(row);
 
         currentDate.add(1, "day");
       }
-
-      var summaryRow = document.createElement("tr");
-      var summaryCell = document.createElement("td");
-      summaryCell.setAttribute("colspan", "6");
-      summaryCell.style.textAlign = "right";
-      summaryCell.style.fontWeight = "bold";
-      summaryCell.textContent = "Total de Horas Trabalhadas:";
-      summaryRow.appendChild(summaryCell);
-
-      var totalHoursCell = document.createElement("td");
-      totalHoursCell.textContent = totalHoursWorked.toFixed(2);
-      summaryRow.appendChild(totalHoursCell);
-
-      var totalExtraCell = document.createElement("td");
-      totalExtraCell.textContent = totalExtraHours.toFixed(2);
-      summaryRow.appendChild(totalExtraCell);
-
-      table.appendChild(summaryRow);
     }
 
     employeeReport.appendChild(table);
