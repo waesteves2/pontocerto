@@ -201,8 +201,8 @@
           horarios: {
             entradaManha: { inicio: '07:00', fim: '09:30' },
             saidaManha: { inicio: '11:00', fim: '12:20' },
-            entradaTarde: { inicio: '13:00', fim: '15:00' },
-            saidaTarde: { inicio: '17:00', fim: '20:30' },
+            entradaTarde: { inicio: '13:00', fim: '13:30' },
+            saidaTarde: { inicio: '14:00', fim: '20:30' },
           },
         },
         '002': {
@@ -448,20 +448,17 @@ function generateReport() {
           var workingHours = 0;
 
           if (entryMorning && exitMorning && entryAfternoon && exitAfternoon) {
-            workingHours =
-              moment(exitMorning.time, "HH:mm").diff(moment(entryMorning.time, "HH:mm"), "hours", true) +
-              moment(exitAfternoon.time, "HH:mm").diff(moment(entryAfternoon.time, "HH:mm"), "hours", true) -
-              moment(exitMorning.time, "HH:mm").diff(moment(entryAfternoon.time, "HH:mm"), "hours", true);
+            var morningHours = moment(exitMorning.time, "HH:mm").diff(moment(entryMorning.time, "HH:mm"), "hours", true);
+            var afternoonHours = moment(exitAfternoon.time, "HH:mm").diff(moment(entryAfternoon.time, "HH:mm"), "hours", true);
+            workingHours = morningHours + afternoonHours;
           }
 
-          var extraHours = 0;
-
-          if (exitAfternoon && exitAfternoon) {
-            extraHours = moment(exitAfternoon.time, "HH:mm").diff(moment(entryAfternoon.fim, "HH:mm"), "hours", true);
+          if (workingHours >= 8) {
+            totalHoursWorked += workingHours - 1; // Subtrai 1 hora para o intervalo de almoço
+            totalExtraHours += workingHours - 8; // Calcula as horas extras (acima de 8 horas)
+          } else {
+            totalHoursWorked += workingHours;
           }
-
-          totalHoursWorked += workingHours;
-          totalExtraHours += extraHours;
         }
 
         table.appendChild(row);
@@ -478,12 +475,10 @@ function generateReport() {
       summaryRow.appendChild(summaryCell);
 
       var totalHoursCell = document.createElement("td");
-      totalHoursCell.style.fontWeight = "bold";
       totalHoursCell.textContent = totalHoursWorked.toFixed(2);
       summaryRow.appendChild(totalHoursCell);
 
       var totalExtraCell = document.createElement("td");
-      totalExtraCell.style.fontWeight = "bold";
       totalExtraCell.textContent = totalExtraHours.toFixed(2);
       summaryRow.appendChild(totalExtraCell);
 
@@ -493,6 +488,7 @@ function generateReport() {
     employeeReport.appendChild(table);
   }
 }
+
 
     function getEmployeeById(employeeId) {
       return employees.find(function (employee) {
@@ -654,3 +650,5 @@ generatePDF();
   </script>
 </body>
 </html>
+
+
