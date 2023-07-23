@@ -1,11 +1,11 @@
+
 <!DOCTYPE html>
 <html lang="pt">
-
-<head>
   <title>Cartão de Ponto</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.9.2/html2pdf.bundle.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
     body {
       font-family: 'Courier New', Courier, monospace;
@@ -33,11 +33,13 @@
       border-collapse: collapse;
       font-size: small;
 
+
     }
 
     #report table th,
     #report table td {
       border: 1px solid #000;
+      
 
     }
 
@@ -76,6 +78,7 @@
     #employee-report {
       text-align: center;
       font-size: 18px;
+
     }
 
     #reset-button {
@@ -143,6 +146,7 @@
       background-color: #f5f5f5;
       border-radius: 5px;
       box-shadow: 0px 0px 5px rgba(0, 0, 0, 0.1);
+      
     }
 
     .absent {
@@ -273,7 +277,7 @@
             entradaManha: { inicio: '07:00', fim: '09:30' },
             saidaManha: { inicio: '11:00', fim: '12:20' },
             entradaTarde: { inicio: '13:00', fim: '15:00' },
-            saidaTarde: { inicio: '17:00', fim: '22:30' },
+            saidaTarde: { inicio: '16:00', fim: '22:30' },
           },
         },
         '002': {
@@ -654,113 +658,88 @@
       }, 3000);
     }
 
-    function generatePDF() {
-      var employeeSelect = document.getElementById("employee-select");
-      var employeeId = employeeSelect.value;
-      var employee = getEmployeeById(employeeId);
-      var reportContainer = document.getElementById("employee-report");
-      var reportHTML = reportContainer.innerHTML;
+    function addInfoToPDF(tempContainer) {
+      // Informações da empresa
+      var logoImg = document.createElement("img");
+      logoImg.src = "./Logo Rosseto.jpg"; // Substitua pelo caminho correto da imagem do logo
+      logoImg.width = 150;
+      tempContainer.appendChild(logoImg);
 
-      if (employee) {
-        // Cria uma div temporária para armazenar o conteúdo completo do relatório
-        var tempDiv = document.createElement("div");
+      var companyName = document.createElement("h2");
+      companyName.innerText = "Rosseto & Araujo Transportes LTDA ME";
+      companyName.style.textAlign = "center";
+      companyName.style.fontSize = "15px";
+      tempContainer.appendChild(companyName);
 
-        // Adiciona o logo da empresa à div temporária
-        var logoImg = document.createElement("img");
-        logoImg.src = "./Logo Rosseto.jpg";
-        logoImg.style.width = "200px"; // Defina o tamanho adequado para o logo
-        logoImg.style.marginBottom = "20px"; // Adicione margem inferior para separar do próximo elemento
-        tempDiv.appendChild(logoImg);
-
-        // Adiciona o nome da empresa
-        var companyName = document.createElement("h2");
-        companyName.innerText = "Rosseto & Araujo Transportes LTDA"; // Substitua pelo nome correto da empresa
-        companyName.style.marginBottom = "10px"; // Adicione margem inferior para separar do próximo elemento
-        companyName.style.color = "black"; // Altera a cor do nome da empresa para azul
-        tempDiv.appendChild(companyName);
-
-        // Adiciona o CNPJ da empresa
-        var cnpj = document.createElement("p");
-        cnpj.innerText = "CNPJ: 08.712.160/0001-75"; // Substitua pelo CNPJ correto da empresa
-        cnpj.style.marginBottom = "20px"; // Adicione margem inferior para separar do próximo elemento
-        tempDiv.appendChild(cnpj);
-
-        // Adiciona o conteúdo do relatório após as informações da empresa
-        tempDiv.innerHTML += reportHTML;
-
-        // Adiciona uma linha para assinatura do colaborador
-        var signatureLine = document.createElement("hr");
-        signatureLine.style.marginTop = "50px"; // Adicione margem superior para separar do conteúdo do relatório
-        tempDiv.appendChild(signatureLine);
-
-        // Adiciona o nome do colaborador
-        var employeeName = document.createElement("p");
-        employeeName.style.marginBottom = "10px"; // Adicione margem inferior para separar do próximo elemento
-        employeeName.innerText = "Colaborador: " + employee.name; // Adiciona o nome do colaborador
-        tempDiv.appendChild(employeeName);
-
-        // Adiciona o CPF do colaborador
-        var employeeCPF = document.createElement("p");
-        employeeCPF.innerText = "CPF: 123.456.789-00"; // Substitua pelo CPF correto do colaborador
-        tempDiv.appendChild(employeeCPF);
-
-        var opt = {
-          margin: [0.5, 0.5, 0.5, 1], // Adicione margem inferior maior para acomodar as informações do colaborador
-          filename: employee.name + "_cartao_ponto.pdf",
-          image: { type: 'jpeg', quality: 1 },
-          html2canvas: { scale: 2 },
-          jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' },
-          pagebreak: { mode: 'avoid-all' },
-          html2pdf: {
-            font: { size: 10 }, // Altera o tamanho da fonte do registro para menor
-            image: { type: 'jpeg', quality: 0.98 },
-            page: { size: 'letter', margin: { top: '0.5in', right: '0.5in', bottom: '1in', left: '0.5in' } }
-          },
-          css: `
-        /* CSS personalizado */
-        body {
-          font-family:'Courier New', Courier, monospace;
-          font-size: 12px;
-          color: #333;
-        }
-        
-        h2 {
-          font-size: 16px;
-          font-weight: bold;
-          margin-bottom: 10px;
-          color: blue;
-        }
-        
-        p {
-          margin-bottom: 5px;
-        }
-
-        table {
-          border-collapse: collapse;
-          width: 100%;
-        }
-
-        th, td {
-          border: 1px solid black;
-          padding: 8px;
-          text-align: left;
-        }
-        
-        /* Adicione mais estilos personalizados conforme necessário */
-
-        /* Fim do CSS personalizado */
-      `
-        };
-
-        html2pdf().set(opt).from(tempDiv.outerHTML).save();
-      } else {
-        alert("Selecione um colaborador para gerar o relatório.");
-      }
+      var cnpj = document.createElement("h3");
+      cnpj.innerText = "CNPJ: 08.712.160/0001-75";
+      cnpj.style.fontSize = "10px";
+      tempContainer.appendChild(cnpj);
     }
 
-    generatePDF();
+    function addEmployeeInfoToPDF(tempContainer, colaborador) {
+      // Linha para assinatura
+      var signatureLine = document.createElement("p");
+      signatureLine.innerText = "______________________________"; // Pode usar underline ou outra representação gráfica
+      tempContainer.appendChild(signatureLine);
 
+      // Informações do colaborador
+      var employeeName = document.createElement("h3");
+      employeeName.innerText = ` ${colaborador.nome}`; // Nome do colaborador
+      employeeName.style.fontSize ="13px"
+      tempContainer.appendChild(employeeName);
 
+      var cpf = document.createElement("h3");
+      cpf.innerText = `CPF: ${colaborador.cpf}`; // CPF do colaborador
+      cpf.style.fontSize = "13px"
+      tempContainer.appendChild(cpf);
+    }
+
+    function generatePDF() {
+      const selectedEmployeeId = document.getElementById("employee-select").value;
+
+      if (selectedEmployeeId) {
+        const employeeInfo = buscarColaborador(selectedEmployeeId);
+        if (employeeInfo) {
+          const opt = {
+            margin: 10,
+            filename: `.${employeeInfo.nome}.pdf`, // Nome do arquivo com o nome do colaborador
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+          };
+
+          // Criação do elemento temporário para armazenar as informações e o relatório
+          var tempContainer = document.createElement("div");
+
+          // Adiciona as informações da empresa
+          addInfoToPDF(tempContainer);
+
+          // Adiciona o relatório de funcionários com fonte de tamanho 13px
+          var reportContainer = document.getElementById("employee-report");
+          if (reportContainer) {
+            var reportContent = document.createElement("div");
+            reportContent.innerHTML = reportContainer.innerHTML;
+            reportContent.style.fontSize = "10px";
+            reportContent.style.textAlign = "center";
+            reportContent.style.fontFamily = "Courier New', Courier, monospace";
+            tempContainer.appendChild(reportContent);
+          } else {
+            alert("A div 'employee-report' não foi encontrada.");
+            return;
+          }
+
+          // Gera o PDF com as informações combinadas (empresa + relatório)
+          html2pdf().from(tempContainer).set(opt).then(function () {
+            // Adiciona as informações do colaborador no fim do PDF
+            addEmployeeInfoToPDF(tempContainer, employeeInfo);
+
+            // Gera novamente o PDF com as informações do colaborador adicionadas
+            html2pdf().from(tempContainer).set(opt).save();
+          });
+        }
+      }
+    }
     // Função para abrir o modal de edição
     function openEditModal(event) {
       var date = event.target.getAttribute("data-date");
@@ -809,35 +788,41 @@
 
     // Função para salvar as edições feitas no modal
     function saveEdit() {
-      var date = document.getElementById("edit-date").textContent;
-      var employeeId = document.getElementById("edit-employeeId").textContent;
-      var entryMorning = document.getElementById("edit-entryMorning").value;
-      var exitMorning = document.getElementById("edit-exitMorning").value;
-      var entryAfternoon = document.getElementById("edit-entryAfternoon").value;
-      var exitAfternoon = document.getElementById("edit-exitAfternoon").value;
+  var date = document.getElementById("edit-date").textContent;
+  var employeeId = document.getElementById("edit-employeeId").textContent;
+  var entryMorning = document.getElementById("edit-entryMorning").value;
+  var exitMorning = document.getElementById("edit-exitMorning").value;
+  var entryAfternoon = document.getElementById("edit-entryAfternoon").value;
+  var exitAfternoon = document.getElementById("edit-exitAfternoon").value;
 
-      // Encontre os registros correspondentes à data e ao ID do funcionário no array "punches"
-      punches.forEach(function (punch) {
-        if (punch.date === date && punch.employeeId === employeeId) {
-          if (punch.punchType === "entrada_manha") {
-            punch.time = entryMorning;
-          } else if (punch.punchType === "saida_manha") {
-            punch.time = exitMorning;
-          } else if (punch.punchType === "entrada_tarde") {
-            punch.time = entryAfternoon;
-          } else if (punch.punchType === "saida_tarde") {
-            punch.time = exitAfternoon;
-          }
-        }
-      });
-
-      // Fecha o modal após salvar as alterações
-      closeEditModal();
-
-      // Atualiza o relatório após salvar as alterações
-      generateReport();
+  // Encontre os registros correspondentes à data e ao ID do funcionário no array "punches"
+  punches.forEach(function (punch) {
+    if (punch.date === date && punch.employeeId === employeeId) {
+      if (punch.punchType === "entrada_manha") {
+        punch.time = entryMorning;
+      } else if (punch.punchType === "saida_manha") {
+        punch.time = exitMorning;
+      } else if (punch.punchType === "entrada_tarde") {
+        punch.time = entryAfternoon;
+      } else if (punch.punchType === "saida_tarde") {
+        punch.time = exitAfternoon;
+      }
     }
+  });
 
+  // Save the modified punches array to the local storage
+  localStorage.setItem("punches", JSON.stringify(punches));
+
+  // Fecha o modal após salvar as alterações
+  closeEditModal();
+
+  // Atualiza o relatório após salvar as alterações
+  generateReport();
+}
+
+
+
+    
 
   </script>
 </body>
