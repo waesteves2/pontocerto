@@ -246,7 +246,7 @@
     <select id="employee-select" onchange="generateReport()">
       <option value="">Selecione um colaborador</option>
       <option value="11118">Welton Alves Esteves</option>
-      <option value="422">Beatriz Fernanda Veratti</option>
+      <option value="002">Beatriz Fernanda Veratti</option>
       <option value="490">Deise Fernanda da Silva</option>
       <option value="496">Jéssica Freitas Sales</option>
       <option value="457">Mayara Fernanda Araujo</option>
@@ -328,9 +328,9 @@
             saidaTarde: { inicio: '16:00', fim: '22:30' },
           },
         },
-        '422': {
+        '002': {
           nome: 'Beatriz Fernanda Veratti',
-          cpf: '422.405.358-65',
+          cpf: '222.222.222-22',
           horarios: {
             entradaManha: { inicio: '07:00', fim: '09:30' },
             saidaManha: { inicio: '11:00', fim: '12:20' },
@@ -445,7 +445,7 @@
 
     var employees = [
       { id: "11118", name: "Welton Alves Esteves", jornada: 8.48 },
-      { id: "422", name: "Beatriz Fernanda Veratti", jornada: 8.48 },
+      { id: "002", name: "Beatriz Fernanda Veratti", jornada: 8.48 },
       { id: "490", name: "Deise Fernanda da Silva", jornada: 8.48 },
       { id: "496", name: "Jéssica Freitas Sales", jornada: 8.48 },
       { id: "457", name: "Mayara Fernanda Araujo", jornada: 8.48 },
@@ -570,215 +570,220 @@
         }
       }
     }
- function generateReport() {
-  var employeeSelect = document.getElementById("employee-select");
-  var selectedEmployeeId = employeeSelect.value;
-  var employeeReport = document.getElementById("employee-report");
-  employeeReport.innerHTML = "";
+    function generateReport() {
+      var employeeSelect = document.getElementById("employee-select");
+      var selectedEmployeeId = employeeSelect.value;
+      var employeeReport = document.getElementById("employee-report");
+      employeeReport.innerHTML = "";
 
-  if (selectedEmployeeId) {
-    var punchesFiltered = punches.filter(function (punch) {
-      return punch.employeeId === selectedEmployeeId;
-    });
-
-    var table = document.createElement("table");
-    table.classList.add("report-table");
-
-    var headerRow = document.createElement("tr");
-    var headers = [
-      "Data",
-      "Dia da Semana",
-      "Entrada Manhã",
-      "Saída Manhã",
-      "Entrada Tarde",
-      "Saída Tarde",
-      "Horas Trabalhadas",
-      "Horas Extras",
-      "Horas Ausentes",
-    ];
-
-    headers.forEach(function (headerText) {
-      var headerCell = document.createElement("th");
-      headerCell.textContent = headerText;
-      headerRow.appendChild(headerCell);
-    });
-
-    table.appendChild(headerRow);
-
-    var expectedWorkingHours = 8 * 3600 + 48 * 60; // 8 hours and 48 minutes in seconds
-    var totalHoursWorked = 0;
-    var totalExtraHours = 0;
-    var totalAbsentHours = 0;
-    var holidays = [
-      "01/01/2023", // Confraternização Universal
-      "07/04/2023", // Paixão de Cristo
-      "21/04/2023", // Tiradentes
-      "01/05/2023", // Dia Mundial do Trabalhador
-      "08/06/2023", // Corpus Christi
-      "09/07/2023", // Data Magna do Estado de São Paulo
-      "07/09/2023", // Independência do Brasil
-      "12/10/2023", // Nossa Senhora Aparecida
-      "02/11/2023", // Finados
-      "15/11/2023", // Proclamação da República
-      "20/11/2023", // Dia da Consciência Negra
-      "25/12/2023", // Natal
-    ];
-
-    var firstPunchDate = punchesFiltered.length > 0 ? punchesFiltered[0].date : null;
-    var lastPunchDate = punchesFiltered.length > 0 ? punchesFiltered[punchesFiltered.length - 1].date : null;
-
-    if (firstPunchDate && lastPunchDate) {
-      var currentDate = moment(firstPunchDate, "DD/MM/YYYY");
-
-      while (currentDate.isSameOrBefore(moment(lastPunchDate, "DD/MM/YYYY"))) {
-        var row = document.createElement("tr");
-
-        var dateCell = document.createElement("td");
-        dateCell.textContent = currentDate.format("DD/MM/YY"); // Formata a data para "24/07/23"
-        row.appendChild(dateCell);
-
-        var dayOfWeekCell = document.createElement("td");
-        dayOfWeekCell.textContent = getWeekdayName(currentDate.format("DD/MM/YYYY"));
-        row.appendChild(dayOfWeekCell);
-
-        var entryMorningCell = document.createElement("td");
-        var exitMorningCell = document.createElement("td");
-        var entryAfternoonCell = document.createElement("td");
-        var exitAfternoonCell = document.createElement("td");
-        var totalHoursCell = document.createElement("td");
-        var extraHoursCell = document.createElement("td");
-        var absentHoursCell = document.createElement("td");
-        var editCell = document.createElement("td"); // New cell for edit button
-
-        entryMorningCell.textContent = "-";
-        exitMorningCell.textContent = "-";
-        entryAfternoonCell.textContent = "-";
-        exitAfternoonCell.textContent = "-";
-        totalHoursCell.textContent = "-";
-        extraHoursCell.textContent = "-";
-        absentHoursCell.textContent = "-";
-        editCell.textContent = "Editar"; // Texto do botão "Editar"
-        editCell.classList.add("edit-button");
-        editCell.setAttribute("data-date", currentDate.format("DD/MM/YYYY"));
-        editCell.setAttribute("data-employeeId", selectedEmployeeId);
-        editCell.onclick = openEditModal; // Função para abrir o modal de edição
-
-        var morningEntry = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
+      if (selectedEmployeeId) {
+        var punchesFiltered = punches.filter(function (punch) {
+          return punch.employeeId === selectedEmployeeId;
         });
 
-        var morningExit = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
+        var table = document.createElement("table");
+        table.classList.add("report-table");
+
+        var headerRow = document.createElement("tr");
+        var headers = [
+          "Data",
+          "Dia da Semana",
+          "Entrada Manhã",
+          "Saída Manhã",
+          "Entrada Tarde",
+          "Saída Tarde",
+          "Horas Trabalhadas",
+          "Horas Extras",
+          "Horas Ausentes",
+        ];
+
+        headers.forEach(function (headerText) {
+          var headerCell = document.createElement("th");
+          headerCell.textContent = headerText;
+          headerRow.appendChild(headerCell);
         });
 
-        var afternoonEntry = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
-        });
+        table.appendChild(headerRow);
 
-        var afternoonExit = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
-        });
+        var expectedWorkingHours = 8 * 3600 + 48 * 60; // 8 hours and 48 minutes in seconds
+        var totalHoursWorked = 0;
+        var totalExtraHours = 0;
+        var totalAbsentHours = 0;
+        var holidays = [
+          "01/01/2023", // Confraternização Universal
+          "07/04/2023", // Paixão de Cristo
+          "21/04/2023", // Tiradentes
+          "01/05/2023", // Dia Mundial do Trabalhador
+          "08/06/2023", // Corpus Christi
+          "09/07/2023", // Data Magna do Estado de São Paulo
+          "07/09/2023", // Independência do Brasil
+          "12/10/2023", // Nossa Senhora Aparecida
+          "02/11/2023", // Finados
+          "15/11/2023", // Proclamação da República
+          "20/11/2023", // Dia da Consciência Negra
+          "25/12/2023", // Natal
+        ];
 
-        if (morningEntry) {
-          entryMorningCell.textContent = morningEntry.time;
+        var firstPunchDate = punchesFiltered.length > 0 ? punchesFiltered[0].date : null;
+        var lastPunchDate = punchesFiltered.length > 0 ? punchesFiltered[punchesFiltered.length - 1].date : null;
+
+        if (firstPunchDate && lastPunchDate) {
+          var currentDate = moment(firstPunchDate, "DD/MM/YYYY");
+
+          while (currentDate.isSameOrBefore(moment(lastPunchDate, "DD/MM/YYYY"))) {
+            var row = document.createElement("tr");
+
+            var dateCell = document.createElement("td");
+            dateCell.textContent = currentDate.format("DD/MM/YY"); // Formata a data para "24/07/23"
+            row.appendChild(dateCell);
+
+            var dayOfWeekCell = document.createElement("td");
+            dayOfWeekCell.textContent = getWeekdayName(currentDate.format("DD/MM/YYYY"));
+            row.appendChild(dayOfWeekCell);
+
+            var entryMorningCell = document.createElement("td");
+            var exitMorningCell = document.createElement("td");
+            var entryAfternoonCell = document.createElement("td");
+            var exitAfternoonCell = document.createElement("td");
+            var totalHoursCell = document.createElement("td");
+            var extraHoursCell = document.createElement("td");
+            var absentHoursCell = document.createElement("td");
+            var editCell = document.createElement("td"); // New cell for edit button
+
+            entryMorningCell.textContent = "-";
+            exitMorningCell.textContent = "-";
+            entryAfternoonCell.textContent = "-";
+            exitAfternoonCell.textContent = "-";
+            totalHoursCell.textContent = "-";
+            extraHoursCell.textContent = "-";
+            absentHoursCell.textContent = "-";
+            editCell.textContent = "Editar"; // Texto do botão "Editar"
+            editCell.classList.add("edit-button");
+            editCell.setAttribute("data-date", currentDate.format("DD/MM/YYYY"));
+            editCell.setAttribute("data-employeeId", selectedEmployeeId);
+            editCell.onclick = openEditModal; // Função para abrir o modal de edição
+
+            var morningEntry = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
+            });
+
+            var morningExit = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
+            });
+
+            var afternoonEntry = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
+            });
+
+            var afternoonExit = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
+            });
+
+            if (morningEntry) {
+              entryMorningCell.textContent = morningEntry.time;
+            }
+
+            if (morningExit) {
+              exitMorningCell.textContent = morningExit.time;
+            }
+
+            if (afternoonEntry) {
+              entryAfternoonCell.textContent = afternoonEntry.time;
+            }
+
+            if (afternoonExit) {
+              exitAfternoonCell.textContent = afternoonExit.time;
+            }
+
+            var totalMorningSeconds = 0;
+            var totalAfternoonSeconds = 0;
+
+            if (entryMorningCell.textContent !== "-" && exitMorningCell.textContent !== "-") {
+              var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
+              var morningExitTime = moment(exitMorningCell.textContent, "HH:mm");
+              totalMorningSeconds = morningExitTime.diff(morningEntryTime, "seconds");
+            }
+
+            if (entryAfternoonCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
+              var afternoonEntryTime = moment(entryAfternoonCell.textContent, "HH:mm");
+              var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
+              totalAfternoonSeconds = afternoonExitTime.diff(afternoonEntryTime, "seconds");
+            }
+
+            var totalSeconds = totalMorningSeconds + totalAfternoonSeconds;
+            var extraSeconds = totalSeconds - expectedWorkingHours;
+            var absentSeconds = expectedWorkingHours - totalSeconds;
+
+            totalHoursWorked += totalSeconds > 0 ? totalSeconds : 0;
+            totalExtraHours += extraSeconds > 0 ? extraSeconds : 0;
+            totalAbsentHours += absentSeconds > 0 ? absentSeconds : 0;
+
+            totalHoursCell.textContent = secondsToTimeString(totalSeconds);
+            extraHoursCell.textContent = extraSeconds > 0 ? secondsToTimeString(extraSeconds) : "00:00:00";
+
+            // Check if the current date is a holiday
+            var isHoliday = holidays.includes(currentDate.format("DD/MM/YYYY"));
+
+            if (isHoliday) {
+              // Set "Feriado" on the absent hours cell and disable the edit button
+              absentHoursCell.textContent = "Feriado";
+              editCell.disabled = true;
+            } else if (currentDate.day() === 0 || currentDate.day() === 6) {
+              // Saturday (0) or Sunday (6)
+              absentHoursCell.textContent = "00:00:00"; // Force "00:00:00" on weekends
+            } else {
+              absentHoursCell.textContent = absentSeconds > 0 ? secondsToTimeString(absentSeconds) : "00:00:00";
+              absentHoursCell.classList.toggle("absent", absentSeconds > 0); // Add or remove "absent" class based on whether there are absent hours
+            }
+
+            if (currentDate.day() === 0 || currentDate.day() === 6) {
+              row.classList.add("day-of-week"); // Apply the red color to Saturdays (6) and Sundays (0)
+            }
+
+            row.appendChild(dateCell);
+            row.appendChild(dayOfWeekCell);
+            row.appendChild(entryMorningCell);
+            row.appendChild(exitMorningCell);
+            row.appendChild(entryAfternoonCell);
+            row.appendChild(exitAfternoonCell);
+            row.appendChild(totalHoursCell);
+            row.appendChild(extraHoursCell);
+            row.appendChild(absentHoursCell);
+            row.appendChild(editCell); // Add edit button cell to the row
+
+            table.appendChild(row);
+
+            currentDate.add(1, "day");
+          }
+
+          // Após percorrer todas as marcações de ponto, atualize os totais no final da tabela
+
+          var totalsRow = document.createElement("tr");
+          totalsRow.classList.add("totals-row");
+
+          var totalsLabelCell = document.createElement("td");
+          totalsLabelCell.textContent = "Totais:";
+          totalsLabelCell.colSpan = 6;
+          totalsRow.appendChild(totalsLabelCell);
+
+          var totalHoursWorkedCell = document.createElement("td");
+          totalHoursWorkedCell.textContent = secondsToTimeString(totalHoursWorked);
+          totalsRow.appendChild(totalHoursWorkedCell);
+
+          var totalExtraHoursCell = document.createElement("td");
+          totalExtraHoursCell.textContent = secondsToTimeString(totalExtraHours);
+          totalsRow.appendChild(totalExtraHoursCell);
+
+          var totalAbsentHoursCell = document.createElement("td");
+          totalAbsentHoursCell.textContent = secondsToTimeString(totalAbsentHours);
+          totalsRow.appendChild(totalAbsentHoursCell);
+
+          table.appendChild(totalsRow);
         }
 
-        if (morningExit) {
-          exitMorningCell.textContent = morningExit.time;
-        }
-
-        if (afternoonEntry) {
-          entryAfternoonCell.textContent = afternoonEntry.time;
-        }
-
-        if (afternoonExit) {
-          exitAfternoonCell.textContent = afternoonExit.time;
-        }
-
-        var totalMorningSeconds = 0;
-        var totalAfternoonSeconds = 0;
-
-        if (entryMorningCell.textContent !== "-" && exitMorningCell.textContent !== "-") {
-          var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
-          var morningExitTime = moment(exitMorningCell.textContent, "HH:mm");
-          totalMorningSeconds = morningExitTime.diff(morningEntryTime, "seconds");
-        }
-
-        if (entryAfternoonCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
-          var afternoonEntryTime = moment(entryAfternoonCell.textContent, "HH:mm");
-          var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
-          totalAfternoonSeconds = afternoonExitTime.diff(afternoonEntryTime, "seconds");
-        }
-
-        var totalSeconds = totalMorningSeconds + totalAfternoonSeconds;
-        var extraSeconds = totalSeconds - expectedWorkingHours;
-        var absentSeconds = expectedWorkingHours - totalSeconds;
-
-        // Check if the current date is a holiday
-        var isHoliday = holidays.includes(currentDate.format("DD/MM/YYYY"));
-
-        // Update the totals for each cell accordingly
-        totalHoursWorked += totalSeconds > 0 ? totalSeconds : 0;
-        totalExtraHours += extraSeconds > 0 ? extraSeconds : 0;
-        totalAbsentHours += isHoliday ? 0 : (absentSeconds > 0 ? absentSeconds : 0);
-
-        totalHoursCell.textContent = secondsToTimeString(totalHoursWorked);
-        extraHoursCell.textContent = secondsToTimeString(totalExtraHours);
-        absentHoursCell.textContent = isHoliday ? "Feriado" : (absentSeconds > 0 ? secondsToTimeString(totalAbsentHours) : "00:00:00");
-
-        if (currentDate.day() === 0 || currentDate.day() === 6) {
-          absentHoursCell.textContent = "00:00:00"; // Force "00:00:00" on weekends
-        } else {
-          absentHoursCell.classList.toggle("absent", absentSeconds > 0); // Add or remove "absent" class based on whether there are absent hours
-        }
-
-        if (currentDate.day() === 0 || currentDate.day() === 6) {
-          row.classList.add("day-of-week"); // Apply the red color to Saturdays (6) and Sundays (0)
-        }
-
-        row.appendChild(dateCell);
-        row.appendChild(dayOfWeekCell);
-        row.appendChild(entryMorningCell);
-        row.appendChild(exitMorningCell);
-        row.appendChild(entryAfternoonCell);
-        row.appendChild(exitAfternoonCell);
-        row.appendChild(totalHoursCell);
-        row.appendChild(extraHoursCell);
-        row.appendChild(absentHoursCell);
-        row.appendChild(editCell); // Add edit button cell to the row
-
-        table.appendChild(row);
-
-        currentDate.add(1, "day");
+        employeeReport.appendChild(table);
       }
-
-      // Após percorrer todas as marcações de ponto, atualize os totais no final da tabela
-      var totalsRow = document.createElement("tr");
-      totalsRow.classList.add("totals-row");
-
-      var totalsLabelCell = document.createElement("td");
-      totalsLabelCell.textContent = "Totais:";
-      totalsLabelCell.colSpan = 6;
-      totalsRow.appendChild(totalsLabelCell);
-
-      var totalHoursWorkedCell = document.createElement("td");
-      totalHoursWorkedCell.textContent = secondsToTimeString(totalHoursWorked);
-      totalsRow.appendChild(totalHoursWorkedCell);
-
-      var totalExtraHoursCell = document.createElement("td");
-      totalExtraHoursCell.textContent = secondsToTimeString(totalExtraHours);
-      totalsRow.appendChild(totalExtraHoursCell);
-
-      var totalAbsentHoursCell = document.createElement("td");
-      totalAbsentHoursCell.textContent = secondsToTimeString(totalAbsentHours);
-      totalsRow.appendChild(totalAbsentHoursCell);
-
-      table.appendChild(totalsRow);
     }
-
-    employeeReport.appendChild(table);
-  }
-}
 
 
 
@@ -1195,4 +1200,3 @@
 </body>
 
 </html>
-
