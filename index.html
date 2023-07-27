@@ -299,12 +299,21 @@
     var resetButton = document.getElementById("reset-button");
 
     function confirmReset() {
-      var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
+  var enteredPassword = prompt("Digite a senha para redefinir o sistema:");
 
-      if (confirmation) {
-        resetPunches();
-      }
+  // Replace "rte304" with the correct password
+  var correctPassword = "rte304";
+
+  if (enteredPassword === correctPassword) {
+    var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
+    if (confirmation) {
+      resetPunches();
     }
+  } else {
+    alert("Senha incorreta. A redefinição não será realizada.");
+  }
+}
+
 
     function resetPunches() {
       punches = [];
@@ -1166,37 +1175,59 @@
       diasFalta = [];
     }
 
-    function registrarPonto() {
-      var selectedEmployeeId = document.getElementById("employee-select").value;
+   function registrarPonto() {
+  var selectedEmployeeId = document.getElementById("employee-select").value;
 
-      // Verificar se o colaborador faltou em algum dia
-      if (diasFalta.length > 0) {
-        adicionarDiasFalta(selectedEmployeeId);
-      }
+  // Verificar se o colaborador faltou em algum dia
+  if (diasFalta.length > 0) {
+    adicionarDiasFalta(selectedEmployeeId);
+  }
 
-      // Obter a data atual
-      var currentDate = moment();
-      var currentDateFormatted = currentDate.format("DD/MM/YYYY");
+  // Obter a data atual
+  var currentDate = moment();
+  var currentDateFormatted = currentDate.format("DD/MM/YYYY");
 
-      // Registrar o ponto normalmente
-      // ...
+  // Obter a data do dia anterior (ontem)
+  var yesterdayDate = currentDate.clone().subtract(1, "day");
+  var yesterdayDateFormatted = yesterdayDate.format("DD/MM/YYYY");
 
-      // Verificar se o colaborador retornou de falta
-      var employeeReturned = diasFalta.indexOf(currentDateFormatted);
-      if (employeeReturned !== -1) {
-        // Remover o dia da lista de dias de falta
-        diasFalta.splice(employeeReturned, 1);
-      }
-    }
+  // Verificar se o colaborador não registrou o ponto hoje, mas registrou ontem
+  var punchesFiltered = punches.filter(function (punch) {
+    return punch.employeeId === selectedEmployeeId;
+  });
 
-    function marcarFalta(date) {
-      var currentDateFormatted = moment(date).format("DD/MM/YYYY");
+  var hasPunchToday = punchesFiltered.some(function (punch) {
+    return punch.date === currentDateFormatted;
+  });
 
-      // Verificar se o dia já não está marcado como falta
-      if (diasFalta.indexOf(currentDateFormatted) === -1) {
-        diasFalta.push(currentDateFormatted);
-      }
-    }
+  var hasPunchYesterday = punchesFiltered.some(function (punch) {
+    return punch.date === yesterdayDateFormatted;
+  });
+
+  if (!hasPunchToday && hasPunchYesterday) {
+    // Marcar o dia de hoje como falta no array "punches"
+    punches.push({
+      employeeId: selectedEmployeeId,
+      employeeName: getEmployeeById(selectedEmployeeId).name,
+      date: currentDateFormatted,
+      time: "00:00:00", // Assuming you want to set the time as "00:00:00" for absence
+      punchType: "falta" // You can use a custom punch type for absence
+    });
+
+    localStorage.setItem("punches", JSON.stringify(punches));
+
+    // Marcar o dia de hoje como falta no array "diasFalta"
+    marcarFalta(currentDateFormatted);
+  }
+
+  // Verificar se o colaborador retornou de falta
+  var employeeReturned = diasFalta.indexOf(currentDateFormatted);
+  if (employeeReturned !== -1) {
+    // Remover o dia da lista de dias de falta
+    diasFalta.splice(employeeReturned, 1);
+  }
+}
+
 
 
 
