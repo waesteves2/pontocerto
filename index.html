@@ -8,6 +8,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/pt-br.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.8/xlsx.full.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+</head>
 
 
 <style>
@@ -260,6 +263,8 @@
     <div id="employee-report"></div>
     <button onclick="generatePDF()">Gerar PDF</button>
     <button id="reset-button" onclick="confirmReset()">Resetar</button>
+<button onclick="exportToExcel()">Exportar para Excel</button>
+    <button onclick="importFromExcel()">Importar de Excel</button>
   </div>
 
 
@@ -1228,6 +1233,46 @@
   }
 }
 
+
+
+// Função para exportar as informações de registro em formato XLS
+function exportToExcel() {
+  var workbook = XLSX.utils.book_new();
+  var punchesSheet = XLSX.utils.json_to_sheet(punches);
+  XLSX.utils.book_append_sheet(workbook, punchesSheet, "Registro de Ponto");
+
+  var exportFileName = "registro_ponto.xlsx";
+  XLSX.writeFile(workbook, exportFileName);
+}
+
+// Função para importar informações de registro em formato XLS
+function importFromExcel() {
+  var input = document.createElement("input");
+  input.type = "file";
+  input.accept = ".xls, .xlsx";
+  input.onchange = function (e) {
+    var file = e.target.files[0];
+    var reader = new FileReader();
+
+    reader.onload = function (e) {
+      var data = new Uint8Array(e.target.result);
+      var workbook = XLSX.read(data, { type: "array" });
+      var punchesSheet = workbook.Sheets[workbook.SheetNames[0]];
+      var punchesData = XLSX.utils.sheet_to_json(punchesSheet, { raw: false });
+
+      // Atualize o array de "punches" com os novos dados importados
+      punches = punchesData;
+      localStorage.setItem("punches", JSON.stringify(punches));
+
+      // Regenere o relatório após a importação dos dados
+      generateReport();
+    };
+
+    reader.readAsArrayBuffer(file);
+  };
+
+  input.click();
+}
 
 
 
