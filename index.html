@@ -299,7 +299,7 @@
     var resetButton = document.getElementById("reset-button");
 
     function confirmReset() {
-  var enteredPassword = prompt("Digite a senha para redefinir o sistema:");
+  var enteredPassword = prompt("Digite a senha");
 
   // Replace "rte304" with the correct password
   var correctPassword = "rte304";
@@ -310,7 +310,7 @@
       resetPunches();
     }
   } else {
-    alert("Senha incorreta. A redefinição não será realizada.");
+    alert("Senha incorreta");
   }
 }
 
