@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="pt">
 <title>Cartão de Ponto</title>
@@ -218,29 +219,7 @@
 
 <body>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-app.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.1.0/firebase-analytics.js";
-    // TODO: Add SDKs for Firebase products that you want to use
-    // https://firebase.google.com/docs/web/setup#available-libraries
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyBLGoL2e6y_rHQQDBE3ZXYVmlQjOzcky4w",
-      authDomain: "cartao-de-ponto-f67ec.firebaseapp.com",
-      databaseURL: "https://cartao-de-ponto-f67ec-default-rtdb.firebaseio.com",
-      projectId: "cartao-de-ponto-f67ec",
-      storageBucket: "cartao-de-ponto-f67ec.appspot.com",
-      messagingSenderId: "201879232320",
-      appId: "1:201879232320:web:2b7c7a9fe183c88f66e4a5",
-      measurementId: "G-E2HPZJGR8Q"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const analytics = getAnalytics(app);
-  </script>
-
-
-  <div id="punch-in-out">
+   <div id="punch-in-out">
     <label for="employee-id">Código de Matrícula:</label><br>
     <input type="text" id="employee-id" autofocus onkeydown="registerPunch(event)">
   </div>
@@ -306,8 +285,7 @@
     function confirmReset() {
   var enteredPassword = prompt("Digite a senha");
 
-  // Replace "rte304" with the correct password
-  var correctPassword = "rte304";
+  var correctPassword = "21042600";
 
   if (enteredPassword === correctPassword) {
     var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
@@ -485,105 +463,94 @@
 
 
     function registerPunch(event) {
-      if (event.keyCode === 13) {
-        var employeeId = document.getElementById("employee-id").value;
-        var employee = getEmployeeById(employeeId);
+  if (event.keyCode === 13) {
+    var employeeId = document.getElementById("employee-id").value;
+    var employee = getEmployeeById(employeeId);
 
-        if (employee) {
-          var date = new Date().toLocaleDateString();
-          var time = new Date().toLocaleTimeString();
+    if (employee) {
+      var currentDate = new Date();
+      var date = currentDate.toLocaleDateString();
+      var time = currentDate.toLocaleTimeString();
 
-          var punchType = getPunchType(time, employeeId);
-          var lastPunch = getLastPunch(employeeId);
+      var punchType = getPunchType(time, employeeId);
+      var lastPunch = getLastPunch(employeeId);
 
-          if (lastPunch && lastPunch.date === date) {
-            // Atualiza o registro existente caso seja do mesmo dia
-            if (punchType === "entrada_manha" && lastPunch.punchType === "entrada_manha") {
-              lastPunch.time = time;
-            } else if (punchType === "saida_manha" && lastPunch.punchType === "saida_manha") {
-              lastPunch.time = time;
-            } else if (punchType === "entrada_tarde" && lastPunch.punchType === "entrada_tarde") {
-              lastPunch.time = time;
-            } else if (punchType === "saida_tarde" && lastPunch.punchType === "saida_tarde") {
-              lastPunch.time = time;
-            } else if (punchType === "extra" && lastPunch.punchType === "extra") {
-              lastPunch.time = time;
-            } else if (punchType === "horas_trabalhadas" && lastPunch.punchType === "horas_trabalhadas") {
-              lastPunch.time = time;
-            } else {
-              // Adiciona um novo registro na célula do lado
-              punches.splice(punches.indexOf(lastPunch) + 1, 0, {
-                employeeId: employeeId,
-                employeeName: employee.name,
-                date: date,
-                time: time,
-                punchType: punchType
-              });
-            }
-          } else {
-            // Adiciona um novo registro
-            punches.push({
+      if (lastPunch && lastPunch.date === date) {
+        if (punchType === lastPunch.punchType) {
+          lastPunch.time = time;
+        } else {
+          punches.push({
+            employeeId: employeeId,
+            employeeName: employee.name,
+            date: date,
+            time: time,
+            punchType: punchType,
+          });
+        }
+      } else {
+        punches.push({
+          employeeId: employeeId,
+          employeeName: employee.name,
+          date: date,
+          time: time,
+          punchType: punchType,
+        });
+
+        var currentDayOfWeek = currentDate.getDay();
+        var isWeekend = currentDayOfWeek === 0 || currentDayOfWeek === 6;
+
+        if (!isWeekend) {
+          var saturdayEntryTime = moment(employee.horarios.entradaManha.inicio, "HH:mm").add(1, "day").format("HH:mm");
+          var saturdayExitTime = moment(employee.horarios.saidaManha.fim, "HH:mm").add(1, "day").format("HH:mm");
+          var sundayEntryTime = moment(employee.horarios.entradaManha.inicio, "HH:mm").add(2, "day").format("HH:mm");
+          var sundayExitTime = moment(employee.horarios.saidaManha.fim, "HH:mm").add(2, "day").format("HH:mm");
+
+          punches.push(
+            {
               employeeId: employeeId,
               employeeName: employee.name,
-              date: date,
-              time: time,
-              punchType: punchType
-            });
-
-            // Check if it's a weekend (Saturday or Sunday)
-            var currentDayOfWeek = new Date().getDay();
-            var isWeekend = currentDayOfWeek === 0 || currentDayOfWeek === 6;
-
-            // If it's not a weekend, add the Saturday and Sunday entries
-            if (!isWeekend) {
-              var saturdayEntryTime = moment(employee.horarios.entradaManha.inicio, "HH:mm").add(1, "day").format("HH:mm");
-              var saturdayExitTime = moment(employee.horarios.saidaManha.fim, "HH:mm").add(1, "day").format("HH:mm");
-              var sundayEntryTime = moment(employee.horarios.entradaManha.inicio, "HH:mm").add(2, "day").format("HH:mm");
-              var sundayExitTime = moment(employee.horarios.saidaManha.fim, "HH:mm").add(2, "day").format("HH:mm");
-
-              punches.push(
-                {
-                  employeeId: employeeId,
-                  employeeName: employee.name,
-                  date: moment().add(1, "day").format("DD/MM/YYYY"),
-                  time: saturdayEntryTime,
-                  punchType: "entrada_manha"
-                },
-                {
-                  employeeId: employeeId,
-                  employeeName: employee.name,
-                  date: moment().add(1, "day").format("DD/MM/YYYY"),
-                  time: saturdayExitTime,
-                  punchType: "saida_manha"
-                },
-                {
-                  employeeId: employeeId,
-                  employeeName: employee.name,
-                  date: moment().add(2, "day").format("DD/MM/YYYY"),
-                  time: sundayEntryTime,
-                  punchType: "entrada_manha"
-                },
-                {
-                  employeeId: employeeId,
-                  employeeName: employee.name,
-                  date: moment().add(2, "day").format("DD/MM/YYYY"),
-                  time: sundayExitTime,
-                  punchType: "saida_manha"
-                }
-              );
+              date: moment().add(1, "day").format("DD/MM/YYYY"),
+              time: saturdayEntryTime,
+              punchType: "entrada_manha",
+            },
+            {
+              employeeId: employeeId,
+              employeeName: employee.name,
+              date: moment().add(1, "day").format("DD/MM/YYYY"),
+              time: saturdayExitTime,
+              punchType: "saida_manha",
+            },
+            {
+              employeeId: employeeId,
+              employeeName: employee.name,
+              date: moment().add(2, "day").format("DD/MM/YYYY"),
+              time: sundayEntryTime,
+              punchType: "entrada_manha",
+            },
+            {
+              employeeId: employeeId,
+              employeeName: employee.name,
+              date: moment().add(2, "day").format("DD/MM/YYYY"),
+              time: sundayExitTime,
+              punchType: "saida_manha",
             }
-          }
-
-          localStorage.setItem("punches", JSON.stringify(punches));
-          document.getElementById("employee-id").value = "";
-
-          showCheckmark(employee.name);
-          generateReport();
-        } else {
-          alert("Colaborador não encontrado. Verifique o código de matrícula digitado.");
+          );
         }
       }
+
+      // Store the modified punches array in a variable and then set it once in localStorage.
+      var updatedPunches = JSON.stringify(punches);
+      localStorage.setItem("punches", updatedPunches);
+
+      document.getElementById("employee-id").value = "";
+      showCheckmark(employee.name);
+      generateReport();
+    } else {
+      alert("Colaborador não encontrado. Verifique o código de matrícula digitado.");
     }
+  }
+}
+
     function generateReport() {
   var employeeSelect = document.getElementById("employee-select");
   var selectedEmployeeId = employeeSelect.value;
@@ -619,7 +586,7 @@
 
     table.appendChild(headerRow);
 
-    var expectedWorkingHours = 8 * 3600 + 48 * 60; // 8 hours and 48 minutes in seconds
+    var expectedWorkingHours = 8 * 3600 + 48 * 60; 
     var totalRegularHours = 0;
     var totalExtraHours = 0;
     var totalAbsentHours = 0;
@@ -648,7 +615,7 @@
         var row = document.createElement("tr");
 
         var dateCell = document.createElement("td");
-        dateCell.textContent = currentDate.format("DD/MM/YY"); // Formata a data para "24/07/23"
+        dateCell.textContent = currentDate.format("DD/MM/YY"); 
         row.appendChild(dateCell);
 
         var dayOfWeekCell = document.createElement("td");
@@ -662,7 +629,7 @@
         var totalHoursCell = document.createElement("td");
         var extraHoursCell = document.createElement("td");
         var absentHoursCell = document.createElement("td");
-        var editCell = document.createElement("td"); // New cell for edit button
+        var editCell = document.createElement("td"); 
 
         entryMorningCell.textContent = "-";
         exitMorningCell.textContent = "-";
@@ -671,11 +638,11 @@
         totalHoursCell.textContent = "-";
         extraHoursCell.textContent = "-";
         absentHoursCell.textContent = "-";
-        editCell.textContent = "Editar"; // Texto do botão "Editar"
+        editCell.textContent = "Editar"; 
         editCell.classList.add("edit-button");
         editCell.setAttribute("data-date", currentDate.format("DD/MM/YYYY"));
         editCell.setAttribute("data-employeeId", selectedEmployeeId);
-        editCell.onclick = openEditModal; // Função para abrir o modal de edição
+        editCell.onclick = openEditModal; 
 
         var morningEntry = punchesFiltered.find(function (punch) {
           return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
@@ -729,15 +696,12 @@
         var absentSeconds = expectedWorkingHours - totalSeconds;
 
         if (currentDate.day() === 0 || currentDate.day() === 6) {
-          // Se for sábado (0) ou domingo (6), ignorar para horas trabalhadas e extras
           totalSeconds = 0;
           extraSeconds = 0;
         } else if (holidays.includes(currentDate.format("DD/MM/YYYY"))) {
-          // Se for feriado, ignorar para horas trabalhadas e extras
           totalSeconds = 0;
           extraSeconds = 0;
         } else {
-          // Caso contrário, atualizar os totais para horas regulares, extras e ausentes
           totalRegularHours += totalSeconds > 0 ? totalSeconds : 0;
           totalExtraHours += extraSeconds > 0 ? extraSeconds : 0;
           totalAbsentHours += absentSeconds > 0 ? absentSeconds : 0;
@@ -747,20 +711,16 @@
         extraHoursCell.textContent = extraSeconds > 0 ? secondsToTimeString(extraSeconds) : "00:00:00";
 
         if (holidays.includes(currentDate.format("DD/MM/YYYY"))) {
-          // Se for feriado, exibir "Feriado" na célula de horas ausentes e desabilitar o botão de edição
           absentHoursCell.textContent = "Feriado";
           editCell.disabled = true;
         } else if (currentDate.day() === 0 || currentDate.day() === 6) {
-          // Se for sábado (0) ou domingo (6), exibir "00:00:00" na célula de horas ausentes
           absentHoursCell.textContent = "00:00:00";
         } else {
-          // Caso contrário, exibir as horas ausentes corretamente e adicionar a classe "absent" conforme necessário
           absentHoursCell.textContent = absentSeconds > 0 ? secondsToTimeString(absentSeconds) : "00:00:00";
           absentHoursCell.classList.toggle("absent", absentSeconds > 0);
         }
 
         if (currentDate.day() === 0 || currentDate.day() === 6) {
-          // Se for sábado (0) ou domingo (6), aplicar a classe "day-of-week" para aplicar cor de fundo vermelha
           row.classList.add("day-of-week");
         }
 
@@ -773,8 +733,7 @@
         row.appendChild(totalHoursCell);
         row.appendChild(extraHoursCell);
         row.appendChild(absentHoursCell);
-        row.appendChild(editCell); // Adicionar célula do botão de edição à linha
-
+        row.appendChild(editCell); 
         table.appendChild(row);
 
         currentDate.add(1, "day");
@@ -820,11 +779,7 @@
       var date = event.target.getAttribute("data-date");
       var employeeId = event.target.getAttribute("data-employeeId");
 
-      // Implement your edit modal here, where administrators can make necessary adjustments to the punches for the selected date and employeeId.
-      // You can show the existing punch data for the selected date and employeeId in the modal, and allow administrators to make changes and save them.
-      // Once the edits are saved, you can update the "punches" array and regenerate the report.
-      // Remember to handle any validations or restrictions you want to apply during the editing process.
-
+      
       console.log("Edit button clicked for date:", date, "and employeeId:", employeeId);
     }
     function getEmployeeById(employeeId) {
@@ -881,9 +836,8 @@
 
 
 
-      // Informações da empresa
       var logoImg = document.createElement("img");
-      logoImg.src = "./Logo Rosseto.jpg"; // Substitua pelo caminho correto da imagem do logo
+      logoImg.src = "./Logo Rosseto.jpg"; 
       logoImg.width = 150;
       tempContainer.appendChild(logoImg);
 
@@ -906,9 +860,8 @@
     }
 
     function addInfoToPDF(tempContainer) {
-      // Informações da empresa
       var logoImg = document.createElement("img");
-      logoImg.src = "./Logo Rosseto.jpg"; // Substitua pelo caminho correto da imagem do logo
+      logoImg.src = "./Logo Rosseto.jpg"; 
       logoImg.width = 180;
       tempContainer.appendChild(logoImg);
 
@@ -929,21 +882,19 @@
     }
 
     function addEmployeeInfoToPDF(tempContainer, colaborador) {
-      // Linha para assinatura
       var signatureLine = document.createElement("p");
       signatureLine.innerText = "______________________________";
-      signatureLine.style.marginTop = "50px" // Pode usar underline ou outra representação gráfica
+      signatureLine.style.marginTop = "50px" 
       tempContainer.appendChild(signatureLine);
 
-      // Informações do colaborador
       var employeeName = document.createElement("h3");
-      employeeName.innerText = ` ${colaborador.nome}`; // Nome do colaborador
+      employeeName.innerText = ` ${colaborador.nome}`; 
       employeeName.style.fontSize = "15.5px"
       employeeName.style.fontFamily = "Calibri, Arial, sans-serif"
       tempContainer.appendChild(employeeName);
 
       var cpf = document.createElement("h3");
-      cpf.innerText = `CPF:${colaborador.cpf}`; // CPF do colaborador
+      cpf.innerText = `CPF:${colaborador.cpf}`; 
       cpf.style.fontSize = "15.4px"
       cpf.style.fontFamily = "Calibri, Arial, sans-serif"
       tempContainer.appendChild(cpf);
@@ -1052,7 +1003,7 @@
 
       var enteredPassword = prompt("Digite sua senha:");
 
-      var correctPassword = "rte304";
+      var correctPassword = "21042600";
 
       if (enteredPassword === correctPassword) {
         punches.forEach(function (punch) {
@@ -1153,12 +1104,11 @@
     var diasFalta = [];
 
     function adicionarDiasFalta(selectedEmployeeId) {
-      var currentDate = moment(); // Data atual
+      var currentDate = moment(); 
       var punchesFiltered = punches.filter(function (punch) {
         return punch.employeeId === selectedEmployeeId;
       });
 
-      // Percorrer os dias em que o colaborador faltou
       diasFalta.forEach(function (dataFalta) {
         if (!punchesFiltered.some(function (punch) {
           return punch.date === dataFalta;
@@ -1167,36 +1117,28 @@
           var dateCell = document.createElement("td");
           dateCell.textContent = moment(dataFalta, "DD/MM/YYYY").format("DD/MM/YY");
           row.appendChild(dateCell);
-          // Adicionar as outras células da tabela com valor "-" ou "00:00:00" para cada dia de falta
-          // ...
 
-          // Adicionar a linha na tabela de relatório do colaborador
           var employeeReport = document.getElementById("employee-report");
           employeeReport.appendChild(row);
         }
       });
 
-      // Limpar os dias de falta após adicioná-los ao sistema
       diasFalta = [];
     }
 
    function registrarPonto() {
   var selectedEmployeeId = document.getElementById("employee-select").value;
 
-  // Verificar se o colaborador faltou em algum dia
   if (diasFalta.length > 0) {
     adicionarDiasFalta(selectedEmployeeId);
   }
 
-  // Obter a data atual
   var currentDate = moment();
   var currentDateFormatted = currentDate.format("DD/MM/YYYY");
 
-  // Obter a data do dia anterior (ontem)
   var yesterdayDate = currentDate.clone().subtract(1, "day");
   var yesterdayDateFormatted = yesterdayDate.format("DD/MM/YYYY");
 
-  // Verificar se o colaborador não registrou o ponto hoje, mas registrou ontem
   var punchesFiltered = punches.filter(function (punch) {
     return punch.employeeId === selectedEmployeeId;
   });
@@ -1210,62 +1152,75 @@
   });
 
   if (!hasPunchToday && hasPunchYesterday) {
-    // Marcar o dia de hoje como falta no array "punches"
     punches.push({
       employeeId: selectedEmployeeId,
       employeeName: getEmployeeById(selectedEmployeeId).name,
       date: currentDateFormatted,
-      time: "00:00:00", // Assuming you want to set the time as "00:00:00" for absence
-      punchType: "falta" // You can use a custom punch type for absence
+      time: "00:00:00", 
+      punchType: "falta" 
     });
 
     localStorage.setItem("punches", JSON.stringify(punches));
 
-    // Marcar o dia de hoje como falta no array "diasFalta"
     marcarFalta(currentDateFormatted);
   }
 
-  // Verificar se o colaborador retornou de falta
   var employeeReturned = diasFalta.indexOf(currentDateFormatted);
   if (employeeReturned !== -1) {
-    // Remover o dia da lista de dias de falta
     diasFalta.splice(employeeReturned, 1);
   }
 }
 
 
 
-// Função para exportar as informações de registro em formato XLS
+
 function exportToExcel() {
   var workbook = XLSX.utils.book_new();
   var punchesSheet = XLSX.utils.json_to_sheet(punches);
   XLSX.utils.book_append_sheet(workbook, punchesSheet, "Registro de Ponto");
 
-  var exportFileName = "registro_ponto.xlsx";
+  var currentDate = new Date();
+  var day = currentDate.getDate();
+  var month = currentDate.getMonth() + 1;
+  var year = currentDate.getFullYear();
+  var formattedDate = day + "-" + month + "-" + year;
+  var exportFileName = "backup_" + formattedDate + ".xlsx";
+
   XLSX.writeFile(workbook, exportFileName);
 }
 
-// Função para importar informações de registro em formato XLS
 function importFromExcel() {
   var input = document.createElement("input");
   input.type = "file";
   input.accept = ".xls, .xlsx";
   input.onchange = function (e) {
     var file = e.target.files[0];
+
+    if (!file) {
+      alert("Nenhum arquivo selecionado.");
+      return;
+    }
+
     var reader = new FileReader();
 
     reader.onload = function (e) {
-      var data = new Uint8Array(e.target.result);
-      var workbook = XLSX.read(data, { type: "array" });
-      var punchesSheet = workbook.Sheets[workbook.SheetNames[0]];
-      var punchesData = XLSX.utils.sheet_to_json(punchesSheet, { raw: false });
+      try {
+        var data = new Uint8Array(e.target.result);
+        var workbook = XLSX.read(data, { type: "array" });
+        var punchesSheet = workbook.Sheets[workbook.SheetNames[0]];
+        var punchesData = XLSX.utils.sheet_to_json(punchesSheet, { raw: false });
 
-      // Atualize o array de "punches" com os novos dados importados
-      punches = punchesData;
-      localStorage.setItem("punches", JSON.stringify(punches));
+        if (confirm("Tem certeza de que deseja importar os novos dados? Isso substituirá os dados existentes.")) {
+          punches = punchesData;
+          localStorage.setItem("punches", JSON.stringify(punches));
 
-      // Regenere o relatório após a importação dos dados
-      generateReport();
+          generateReport();
+
+          alert("Dados importados com sucesso!");
+        }
+      } catch (error) {
+        alert("Erro ao importar o arquivo. Verifique se o formato está correto.");
+      }
     };
 
     reader.readAsArrayBuffer(file);
@@ -1274,7 +1229,23 @@ function importFromExcel() {
   input.click();
 }
 
+function scheduleExport() {
+  var targetHour = 20;
+  var targetMinute = 45;
 
+  var exportInterval = setInterval(function() {
+    var now = new Date();
+    var currentHour = now.getHours();
+    var currentMinute = now.getMinutes();
+
+    if (currentHour === targetHour && currentMinute === targetMinute) {
+      exportToExcel();
+    }
+  }, 60000); 
+
+scheduleExport();
+
+}
 
 
   </script>
