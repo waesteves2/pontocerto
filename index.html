@@ -95,12 +95,12 @@
 
   .checkmark-wrapper {
     position: fixed;
-    top: 75%;
+    top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 9999;
-    width: 10cm;
-    height: 10cm;
+    width: 15cm;
+    height: 15cm;
     display: flex;
     flex-direction: column;
     justify-content: center;
@@ -214,6 +214,11 @@
   .day-of-week {
     color: red;
   }
+
+.blue-counter {
+  color: blue;
+}
+
 </style>
 </head>
 
@@ -227,7 +232,7 @@
     <h2>Cartão de Ponto</h2>
     <select id="employee-select" onchange="generateReport()">
       <option value="">Selecione um colaborador</option>
-      <option value="11118">Welton Alves Esteves</option>
+      <option value="401">Welton Alves Esteves</option>
       <option value="002">Beatriz Fernanda Veratti</option>
       <option value="490">Deise Fernanda da Silva</option>
       <option value="496">Jéssica Freitas Sales</option>
@@ -285,7 +290,7 @@
     function confirmReset() {
   var enteredPassword = prompt("Digite a senha");
 
-  var correctPassword = "21042600";
+  var correctPassword = "30410";
 
   if (enteredPassword === correctPassword) {
     var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
@@ -310,7 +315,7 @@
   <script>
     function buscarColaborador(codigo) {
       const colaboradores = {
-        '11118': {
+        '401': {
           nome: 'Welton Alves Esteves',
           cpf: '401.260.068-06',
           horarios: {
@@ -436,7 +441,7 @@
     }
 
     var employees = [
-      { id: "11118", name: "Welton Alves Esteves", jornada: 8.48 },
+      { id: "401", name: "Welton Alves Esteves", jornada: 8.48 },
       { id: "002", name: "Beatriz Fernanda Veratti", jornada: 8.48 },
       { id: "490", name: "Deise Fernanda da Silva", jornada: 8.48 },
       { id: "496", name: "Jéssica Freitas Sales", jornada: 8.48 },
@@ -743,20 +748,24 @@
       totalsRow.classList.add("totals-row");
 
       var totalsLabelCell = document.createElement("td");
-      totalsLabelCell.textContent = "Totais:";
+      totalsLabelCell.textContent = "Total:";
+      totalsLabelCell.classList.add("blue-counter"); // Add the "blue-counter" class
       totalsLabelCell.colSpan = 6;
       totalsRow.appendChild(totalsLabelCell);
 
-      var totalRegularHoursCell = document.createElement("td");
-      totalRegularHoursCell.textContent = secondsToTimeString(totalRegularHours);
-      totalsRow.appendChild(totalRegularHoursCell);
+     var totalRegularHoursCell = document.createElement("td");
+     totalRegularHoursCell.textContent = secondsToTimeString(totalRegularHours);
+     totalRegularHoursCell.classList.add("blue-counter"); // Add the "blue-counter" class
+     totalsRow.appendChild(totalRegularHoursCell);
 
       var totalExtraHoursCell = document.createElement("td");
       totalExtraHoursCell.textContent = secondsToTimeString(totalExtraHours);
+      totalExtraHoursCell.classList.add("blue-counter"); // Add the "blue-counter" class
       totalsRow.appendChild(totalExtraHoursCell);
 
       var totalAbsentHoursCell = document.createElement("td");
       totalAbsentHoursCell.textContent = secondsToTimeString(totalAbsentHours);
+      totalAbsentHoursCell.classList.add("blue-counter"); // Add the "blue-counter" class
       totalsRow.appendChild(totalAbsentHoursCell);
 
       table.appendChild(totalsRow);
@@ -832,33 +841,7 @@
       }, 3000);
     }
 
-    function addInfoToPDF(tempContainer) {
-
-
-
-      var logoImg = document.createElement("img");
-      logoImg.src = "./Logo Rosseto.jpg"; 
-      logoImg.width = 150;
-      tempContainer.appendChild(logoImg);
-
-      var companyName = document.createElement("h2");
-      companyName.innerText = "Rosseto & Araujo Transportes LTDA ME";
-      companyName.style.textAlign = "center";
-      companyName.style.fontSize = "15px";
-      companyName.style.fontFamily = "Calibri, Arial, sans-serif";
-      tempContainer.appendChild(companyName);
-
-      var cnpj = document.createElement("h3");
-      cnpj.innerText = "CNPJ: 08.712.160/0001-75";
-      cnpj.style.fontSize = "10px";
-      cnpj.style.fontFamily = "Calibri, Arial, sans-serif";
-
-      tempContainer.appendChild(cnpj);
-
-
-
-    }
-
+    
     function addInfoToPDF(tempContainer) {
       var logoImg = document.createElement("img");
       logoImg.src = "./Logo Rosseto.jpg"; 
@@ -881,7 +864,7 @@
       tempContainer.appendChild(cnpj);
     }
 
-    function addEmployeeInfoToPDF(tempContainer, colaborador) {
+       function addEmployeeInfoToPDF(tempContainer, colaborador) {
       var signatureLine = document.createElement("p");
       signatureLine.innerText = "______________________________";
       signatureLine.style.marginTop = "50px" 
@@ -895,12 +878,12 @@
 
       var cpf = document.createElement("h3");
       cpf.innerText = `CPF:${colaborador.cpf}`; 
-      cpf.style.fontSize = "15.4px"
+      cpf.style.fontSize = "15.5px"
       cpf.style.fontFamily = "Calibri, Arial, sans-serif"
       tempContainer.appendChild(cpf);
     }
 
-    function generatePDF() {
+     function generatePDF() {
       var editButtons = document.getElementsByClassName("edit-button");
       for (var i = 0; i < editButtons.length; i++) {
         editButtons[i].style.display = "none";
@@ -936,6 +919,18 @@
             return;
           }
 
+          var currentDate = getFormattedDate(); // Obtém a data formatada (exemplo: "07/2023")
+
+          // Cria um elemento para mostrar o mês e o ano
+          var monthYear = document.createElement("h3");
+          monthYear.innerText = "Mês " + currentDate;
+          monthYear.style.position = "absolute";
+          monthYear.style.top = "10mm"; // Ajuste a posição vertical conforme necessário
+          monthYear.style.right = "10mm"; // Ajuste a posição horizontal conforme necessário
+          monthYear.style.fontSize = "14px";
+          monthYear.style.fontFamily = "Calibri, Arial, sans-serif";
+          tempContainer.appendChild(monthYear);
+
           html2pdf().from(tempContainer).set(opt).then(function () {
             addEmployeeInfoToPDF(tempContainer, employeeInfo);
 
@@ -950,6 +945,13 @@
           });
         }
       }
+    }
+
+    function getFormattedDate() {
+      var date = new Date();
+      var month = (date.getMonth() + 1).toString().padStart(2, "0");
+      var year = date.getFullYear().toString();
+      return `${month}/${year}`;
     }
 
     function openEditModal(event) {
@@ -1003,7 +1005,7 @@
 
       var enteredPassword = prompt("Digite sua senha:");
 
-      var correctPassword = "21042600";
+      var correctPassword = "30410";
 
       if (enteredPassword === correctPassword) {
         punches.forEach(function (punch) {
@@ -1254,3 +1256,4 @@ scheduleExport();
 </body>
 
 </html>
+
