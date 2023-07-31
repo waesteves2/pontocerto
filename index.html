@@ -216,8 +216,26 @@
   }
 
 .blue-counter {
-  color: blue;
+  color: #0984e3;
+
 }
+
+ .clock {
+            background-color: #0984e3;
+            color: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            font-size: 2rem;
+	width: 200px
+margin:auto;
+text-align:center;
+ font-family: Arial, sans-serif;
+
+            justify-content: center;
+            align-items: center;
+            
+            margin: 0;
+        }
 
 </style>
 </head>
@@ -227,6 +245,7 @@
    <div id="punch-in-out">
     <label for="employee-id">Código de Matrícula:</label><br>
     <input type="text" id="employee-id" autofocus onkeydown="registerPunch(event)">
+ 
   </div>
   <div id="report">
     <h2>Cartão de Ponto</h2>
@@ -274,6 +293,11 @@
     <img id="checkmark-image" src="https://imagepng.org/wp-content/uploads/2019/12/check-icone-3.png" alt="Checkmark">
     <span id="checkmark-text"></span>
   </div>
+<br>
+<br>
+<div class="clock" id="clock">
+        00:00:00
+    </div>
 
   <script>
 
@@ -1250,7 +1274,28 @@ scheduleExport();
 }
 
 
+
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+
+            const timeString = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('clock').textContent = timeString;
+        }
+
+        // Atualizar o relógio a cada segundo
+        setInterval(updateClock, 1000);
+
+        // Iniciar o relógio imediatamente ao carregar a página
+        updateClock();
+    
+
   </script>
+
+
+
 
 
 </body>
