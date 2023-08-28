@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="pt">
 <title>Cartão de Ponto</title>
@@ -7,10 +6,9 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/moment.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.29.1/locale/pt-br.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.16.8/xlsx.full.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
 </head>
 
 
@@ -95,7 +93,7 @@
 
   .checkmark-wrapper {
     position: fixed;
-    top: 50%;
+    top: 75%;
     left: 50%;
     transform: translate(-50%, -50%);
     z-index: 9999;
@@ -215,37 +213,37 @@
     color: red;
   }
 
-.blue-counter {
-  color: #0984e3;
+  .blue-counter {
+    color: #0984e3;
 
-}
+  }
 
- .clock {
-            background-color: #0984e3;
-            color: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            font-size: 2rem;
-	width: 200px
-margin:auto;
-text-align:center;
- font-family: Arial, sans-serif;
+  .clock {
+    background-color: #0984e3;
+    color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    font-size: 2rem;
+    width: 200px;
+    margin:auto;
+    text-align: center;
+    font-family: Arial, sans-serif;
+    align-items: center;
 
-            justify-content: center;
-            align-items: center;
-            
-            margin: 0;
-        }
-
+  }
 </style>
+
+
 </head>
 
 <body>
 
-   <div id="punch-in-out">
+
+
+  <div id="punch-in-out">
     <label for="employee-id">Código de Matrícula:</label><br>
     <input type="text" id="employee-id" autofocus onkeydown="registerPunch(event)">
- 
+
   </div>
   <div id="report">
     <h2>Cartão de Ponto</h2>
@@ -266,7 +264,7 @@ text-align:center;
     <div id="employee-report"></div>
     <button onclick="generatePDF()">Gerar PDF</button>
     <button id="reset-button" onclick="confirmReset()">Resetar</button>
-<button onclick="exportToExcel()">Exportar para Excel</button>
+    <button onclick="exportToExcel()">Exportar para Excel</button>
     <button onclick="importFromExcel()">Importar de Excel</button>
   </div>
 
@@ -293,11 +291,11 @@ text-align:center;
     <img id="checkmark-image" src="https://imagepng.org/wp-content/uploads/2019/12/check-icone-3.png" alt="Checkmark">
     <span id="checkmark-text"></span>
   </div>
-<br>
-<br>
-<div class="clock" id="clock">
-        00:00:00
-    </div>
+  <br>
+  <br>
+  <div class="clock" id="clock">
+    00:00:00
+  </div>
 
   <script>
 
@@ -312,19 +310,19 @@ text-align:center;
     var resetButton = document.getElementById("reset-button");
 
     function confirmReset() {
-  var enteredPassword = prompt("Digite a senha");
+      var enteredPassword = prompt("Digite a senha");
 
-  var correctPassword = "30410";
+      var correctPassword = "30410";
 
-  if (enteredPassword === correctPassword) {
-    var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
-    if (confirmation) {
-      resetPunches();
+      if (enteredPassword === correctPassword) {
+        var confirmation = confirm("Tem certeza de que deseja redefinir o sistema? Isso apagará todos os registros.");
+        if (confirmation) {
+          resetPunches();
+        }
+      } else {
+        alert("Senha incorreta");
+      }
     }
-  } else {
-    alert("Senha incorreta");
-  }
-}
 
 
     function resetPunches() {
@@ -492,313 +490,286 @@ text-align:center;
 
 
     function registerPunch(event) {
-  if (event.keyCode === 13) {
-    var employeeId = document.getElementById("employee-id").value;
-    var employee = getEmployeeById(employeeId);
+      if (event.keyCode === 13) {
+        event.preventDefault();
 
-    if (employee) {
-      var currentDate = new Date();
-      var date = currentDate.toLocaleDateString();
-      var time = currentDate.toLocaleTimeString();
+        var employeeId = document.getElementById("employee-id").value;
+        var employee = getEmployeeById(employeeId);
 
-      var punchType = getPunchType(time, employeeId);
-      var lastPunch = getLastPunch(employeeId);
+        if (employee) {
+          var currentDate = new Date();
+          var date = currentDate.toLocaleDateString();
+          var time = currentDate.toLocaleTimeString();
 
-      if (lastPunch && lastPunch.date === date) {
-        if (punchType === lastPunch.punchType) {
-          lastPunch.time = time;
-        } else {
-          punches.push({
-            employeeId: employeeId,
-            employeeName: employee.name,
-            date: date,
-            time: time,
-            punchType: punchType,
-          });
-        }
-      } else {
-        punches.push({
-          employeeId: employeeId,
-          employeeName: employee.name,
-          date: date,
-          time: time,
-          punchType: punchType,
-        });
+          var punchType = getPunchType(time, employeeId);
+          var lastPunch = getLastPunch(employeeId);
 
-        var currentDayOfWeek = currentDate.getDay();
-        var isWeekend = currentDayOfWeek === 0 || currentDayOfWeek === 6;
-
-        if (!isWeekend) {
-          var saturdayEntryTime = moment(employee.horarios.entradaManha.inicio, "HH:mm").add(1, "day").format("HH:mm");
-          var saturdayExitTime = moment(employee.horarios.saidaManha.fim, "HH:mm").add(1, "day").format("HH:mm");
-          var sundayEntryTime = moment(employee.horarios.entradaManha.inicio, "HH:mm").add(2, "day").format("HH:mm");
-          var sundayExitTime = moment(employee.horarios.saidaManha.fim, "HH:mm").add(2, "day").format("HH:mm");
-
-          punches.push(
-            {
-              employeeId: employeeId,
-              employeeName: employee.name,
-              date: moment().add(1, "day").format("DD/MM/YYYY"),
-              time: saturdayEntryTime,
-              punchType: "entrada_manha",
-            },
-            {
-              employeeId: employeeId,
-              employeeName: employee.name,
-              date: moment().add(1, "day").format("DD/MM/YYYY"),
-              time: saturdayExitTime,
-              punchType: "saida_manha",
-            },
-            {
-              employeeId: employeeId,
-              employeeName: employee.name,
-              date: moment().add(2, "day").format("DD/MM/YYYY"),
-              time: sundayEntryTime,
-              punchType: "entrada_manha",
-            },
-            {
-              employeeId: employeeId,
-              employeeName: employee.name,
-              date: moment().add(2, "day").format("DD/MM/YYYY"),
-              time: sundayExitTime,
-              punchType: "saida_manha",
+          if (lastPunch && lastPunch.date === date) {
+            if (punchType === lastPunch.punchType) {
+              lastPunch.time = time;
+            } else {
+              punches.push({
+                employeeId: employeeId,
+                employeeName: employee.name,
+                date: date,
+                time: time,
+                punchType: punchType,
+              });
             }
-          );
+          } else {
+            punches.push({
+              employeeId: employeeId,
+              employeeName: employee.name,
+              date: date,
+              time: time,
+              punchType: punchType,
+            });
+
+            var currentDayOfWeek = currentDate.getDay();
+            var isWeekend = currentDayOfWeek === 0 || currentDayOfWeek === 6;
+
+
+          }
+
+          var updatedPunches = JSON.stringify(punches);
+          localStorage.setItem("punches", updatedPunches);
+
+          document.getElementById("employee-id").value = "";
+          showCheckmark(employee.name);
+          generateReport();
+        } else {
+          alert("Colaborador não encontrado. Verifique o código de matrícula digitado.");
         }
       }
-
-      // Store the modified punches array in a variable and then set it once in localStorage.
-      var updatedPunches = JSON.stringify(punches);
-      localStorage.setItem("punches", updatedPunches);
-
-      document.getElementById("employee-id").value = "";
-      showCheckmark(employee.name);
-      generateReport();
-    } else {
-      alert("Colaborador não encontrado. Verifique o código de matrícula digitado.");
     }
-  }
-}
+
 
     function generateReport() {
-  var employeeSelect = document.getElementById("employee-select");
-  var selectedEmployeeId = employeeSelect.value;
-  var employeeReport = document.getElementById("employee-report");
-  employeeReport.innerHTML = "";
+      var employeeSelect = document.getElementById("employee-select");
+      var selectedEmployeeId = employeeSelect.value;
+      var employeeReport = document.getElementById("employee-report");
+      employeeReport.innerHTML = "";
 
-  if (selectedEmployeeId) {
-    var punchesFiltered = punches.filter(function (punch) {
-      return punch.employeeId === selectedEmployeeId;
-    });
-
-    var table = document.createElement("table");
-    table.classList.add("report-table");
-
-    var headerRow = document.createElement("tr");
-    var headers = [
-      "Data",
-      "Dia da Semana",
-      "Entrada Manhã",
-      "Saída Manhã",
-      "Entrada Tarde",
-      "Saída Tarde",
-      "Horas Trabalhadas",
-      "Horas Extras",
-      "Horas Ausentes",
-    ];
-
-    headers.forEach(function (headerText) {
-      var headerCell = document.createElement("th");
-      headerCell.textContent = headerText;
-      headerRow.appendChild(headerCell);
-    });
-
-    table.appendChild(headerRow);
-
-    var expectedWorkingHours = 8 * 3600 + 48 * 60; 
-    var totalRegularHours = 0;
-    var totalExtraHours = 0;
-    var totalAbsentHours = 0;
-    var holidays = [
-      "01/01/2023", // Confraternização Universal
-      "07/04/2023", // Paixão de Cristo
-      "21/04/2023", // Tiradentes
-      "01/05/2023", // Dia Mundial do Trabalhador
-      "08/06/2023", // Corpus Christi
-      "09/07/2023", // Data Magna do Estado de São Paulo
-      "07/09/2023", // Independência do Brasil
-      "12/10/2023", // Nossa Senhora Aparecida
-      "02/11/2023", // Finados
-      "15/11/2023", // Proclamação da República
-      "20/11/2023", // Dia da Consciência Negra
-      "25/12/2023", // Natal
-    ];
-
-    var firstPunchDate = punchesFiltered.length > 0 ? punchesFiltered[0].date : null;
-    var lastPunchDate = punchesFiltered.length > 0 ? punchesFiltered[punchesFiltered.length - 1].date : null;
-
-    if (firstPunchDate && lastPunchDate) {
-      var currentDate = moment(firstPunchDate, "DD/MM/YYYY");
-
-      while (currentDate.isSameOrBefore(moment(lastPunchDate, "DD/MM/YYYY"))) {
-        var row = document.createElement("tr");
-
-        var dateCell = document.createElement("td");
-        dateCell.textContent = currentDate.format("DD/MM/YY"); 
-        row.appendChild(dateCell);
-
-        var dayOfWeekCell = document.createElement("td");
-        dayOfWeekCell.textContent = getWeekdayName(currentDate.format("DD/MM/YYYY"));
-        row.appendChild(dayOfWeekCell);
-
-        var entryMorningCell = document.createElement("td");
-        var exitMorningCell = document.createElement("td");
-        var entryAfternoonCell = document.createElement("td");
-        var exitAfternoonCell = document.createElement("td");
-        var totalHoursCell = document.createElement("td");
-        var extraHoursCell = document.createElement("td");
-        var absentHoursCell = document.createElement("td");
-        var editCell = document.createElement("td"); 
-
-        entryMorningCell.textContent = "-";
-        exitMorningCell.textContent = "-";
-        entryAfternoonCell.textContent = "-";
-        exitAfternoonCell.textContent = "-";
-        totalHoursCell.textContent = "-";
-        extraHoursCell.textContent = "-";
-        absentHoursCell.textContent = "-";
-        editCell.textContent = "Editar"; 
-        editCell.classList.add("edit-button");
-        editCell.setAttribute("data-date", currentDate.format("DD/MM/YYYY"));
-        editCell.setAttribute("data-employeeId", selectedEmployeeId);
-        editCell.onclick = openEditModal; 
-
-        var morningEntry = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
+      if (selectedEmployeeId) {
+        var punchesFiltered = punches.filter(function (punch) {
+          return punch.employeeId === selectedEmployeeId;
         });
 
-        var morningExit = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
+        var table = document.createElement("table");
+        table.classList.add("report-table");
+
+        var headerRow = document.createElement("tr");
+        var headers = [
+          "Data",
+          "Dia da Semana",
+          "Entrada Manhã",
+          "Saída Manhã",
+          "Entrada Tarde",
+          "Saída Tarde",
+          "Horas Trabalhadas",
+          "Horas Extras",
+          "Horas Ausentes",
+        ];
+
+        headers.forEach(function (headerText) {
+          var headerCell = document.createElement("th");
+          headerCell.textContent = headerText;
+          headerRow.appendChild(headerCell);
         });
 
-        var afternoonEntry = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
-        });
+        table.appendChild(headerRow);
 
-        var afternoonExit = punchesFiltered.find(function (punch) {
-          return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
-        });
+        var expectedWorkingHours = 8 * 3600 + 48 * 60;
+        var totalRegularHours = 0;
+        var totalExtraHours = 0;
+        var totalAbsentHours = 0;
+        var holidays = [
+          "01/01/2023", // Confraternização Universal
+          "07/04/2023", // Paixão de Cristo
+          "21/04/2023", // Tiradentes
+          "01/05/2023", // Dia Mundial do Trabalhador
+          "08/06/2023", // Corpus Christi
+          "09/07/2023", // Data Magna do Estado de São Paulo
+          "07/09/2023", // Independência do Brasil
+          "12/10/2023", // Nossa Senhora Aparecida
+          "02/11/2023", // Finados
+          "15/11/2023", // Proclamação da República
+          "20/11/2023", // Dia da Consciência Negra
+          "25/12/2023", // Natal
+        ];
 
-        if (morningEntry) {
-          entryMorningCell.textContent = morningEntry.time;
+        var firstPunchDate = punchesFiltered.length > 0 ? punchesFiltered[0].date : null;
+        var lastPunchDate = punchesFiltered.length > 0 ? punchesFiltered[punchesFiltered.length - 1].date : null;
+
+        if (firstPunchDate && lastPunchDate) {
+          var currentDate = moment(firstPunchDate, "DD/MM/YYYY");
+
+          while (currentDate.isSameOrBefore(moment(lastPunchDate, "DD/MM/YYYY"))) {
+            var row = document.createElement("tr");
+
+            var dateCell = document.createElement("td");
+            dateCell.textContent = currentDate.format("DD/MM/YYYY");
+            row.appendChild(dateCell);
+
+            var dayOfWeekCell = document.createElement("td");
+            dayOfWeekCell.textContent = getWeekdayName(currentDate.format("DD/MM/YYYY"));
+            row.appendChild(dayOfWeekCell);
+
+            var entryMorningCell = document.createElement("td");
+            var exitMorningCell = document.createElement("td");
+            var entryAfternoonCell = document.createElement("td");
+            var exitAfternoonCell = document.createElement("td");
+            var totalHoursCell = document.createElement("td");
+            var extraHoursCell = document.createElement("td");
+            var absentHoursCell = document.createElement("td");
+            var editCell = document.createElement("td");
+
+            entryMorningCell.textContent = "-";
+            exitMorningCell.textContent = "-";
+            entryAfternoonCell.textContent = "-";
+            exitAfternoonCell.textContent = "-";
+            totalHoursCell.textContent = "-";
+            extraHoursCell.textContent = "-";
+            absentHoursCell.textContent = "-";
+            editCell.textContent = "Editar";
+            editCell.classList.add("edit-button");
+            editCell.setAttribute("data-date", currentDate.format("DD/MM/YYYY"));
+            editCell.setAttribute("data-employeeId", selectedEmployeeId);
+            editCell.onclick = openEditModal;
+
+            var morningEntry = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_manha";
+            });
+
+            var morningExit = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_manha";
+            });
+
+            var afternoonEntry = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "entrada_tarde";
+            });
+
+            var afternoonExit = punchesFiltered.find(function (punch) {
+              return punch.date === currentDate.format("DD/MM/YYYY") && punch.punchType === "saida_tarde";
+            });
+
+            if (morningEntry) {
+              entryMorningCell.textContent = morningEntry.time;
+            }
+
+            if (morningExit) {
+              exitMorningCell.textContent = morningExit.time;
+            }
+
+            if (afternoonEntry) {
+              entryAfternoonCell.textContent = afternoonEntry.time;
+            }
+
+            if (afternoonExit) {
+              exitAfternoonCell.textContent = afternoonExit.time;
+            }
+
+            var totalMorningSeconds = 0;
+            var totalAfternoonSeconds = 0;
+
+            if (entryMorningCell.textContent !== "-" && exitMorningCell.textContent !== "-") {
+              var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
+              var morningExitTime = moment(exitMorningCell.textContent, "HH:mm");
+              totalMorningSeconds = morningExitTime.diff(morningEntryTime, "seconds");
+            }
+
+            if (entryAfternoonCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
+              var afternoonEntryTime = moment(entryAfternoonCell.textContent, "HH:mm");
+              var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
+              totalAfternoonSeconds = afternoonExitTime.diff(afternoonEntryTime, "seconds");
+            }
+
+            var totalSeconds = totalMorningSeconds + totalAfternoonSeconds;
+            var extraSeconds = totalSeconds - expectedWorkingHours;
+            var absentSeconds = expectedWorkingHours - totalSeconds;
+
+            if (currentDate.day() === 0 || currentDate.day() === 6) {
+              totalSeconds = 0;
+              extraSeconds = 0;
+            } else if (holidays.includes(currentDate.format("DD/MM/YYYY"))) {
+              totalSeconds = 0;
+              extraSeconds = 0;
+            } else {
+              totalRegularHours += totalSeconds > 0 ? totalSeconds : 0;
+              totalExtraHours += extraSeconds > 0 ? extraSeconds : 0;
+              totalAbsentHours += absentSeconds > 0 ? absentSeconds : 0;
+            }
+
+            totalHoursCell.textContent = secondsToTimeString(totalSeconds);
+            extraHoursCell.textContent = extraSeconds > 0 ? secondsToTimeString(extraSeconds) : "00:00:00";
+
+            if (holidays.includes(currentDate.format("DD/MM/YYYY"))) {
+              absentHoursCell.textContent = "Feriado";
+              editCell.disabled = true;
+            } else if (currentDate.day() === 0 || currentDate.day() === 6) {
+              absentHoursCell.textContent = "00:00:00";
+            } else {
+              absentHoursCell.textContent = absentSeconds > 0 ? secondsToTimeString(absentSeconds) : "00:00:00";
+              absentHoursCell.classList.toggle("absent", absentSeconds > 0);
+            }
+
+            if (currentDate.day() === 0 || currentDate.day() === 6) {
+              row.classList.add("day-of-week");
+            }
+
+            row.appendChild(dateCell);
+            row.appendChild(dayOfWeekCell);
+            row.appendChild(entryMorningCell);
+            row.appendChild(exitMorningCell);
+            row.appendChild(entryAfternoonCell);
+            row.appendChild(exitAfternoonCell);
+            row.appendChild(totalHoursCell);
+            row.appendChild(extraHoursCell);
+            row.appendChild(absentHoursCell);
+            row.appendChild(editCell);
+            table.appendChild(row);
+
+            currentDate.add(1, "day");
+          }
+
+          var totalsRow = document.createElement("tr");
+          totalsRow.classList.add("totals-row");
+
+          var totalsLabelCell = document.createElement("td");
+          totalsLabelCell.textContent = "Total:";
+          totalsLabelCell.classList.add("blue-counter");
+          totalsLabelCell.colSpan = 6;
+          totalsRow.appendChild(totalsLabelCell);
+
+          var totalRegularHoursCell = document.createElement("td");
+          totalRegularHoursCell.textContent = secondsToTimeString(totalRegularHours);
+          totalRegularHoursCell.classList.add("blue-counter");
+          totalsRow.appendChild(totalRegularHoursCell);
+
+          var totalExtraHoursCell = document.createElement("td");
+          totalExtraHoursCell.textContent = secondsToTimeString(totalExtraHours);
+          totalExtraHoursCell.classList.add("blue-counter");
+          totalsRow.appendChild(totalExtraHoursCell);
+
+          var totalAbsentHoursCell = document.createElement("td");
+          totalAbsentHoursCell.textContent = secondsToTimeString(totalAbsentHours);
+          totalAbsentHoursCell.classList.add("blue-counter");
+          totalsRow.appendChild(totalAbsentHoursCell);
+
+          table.appendChild(totalsRow);
         }
 
-        if (morningExit) {
-          exitMorningCell.textContent = morningExit.time;
-        }
+        employeeReport.appendChild(table);
+        console.log("punchesFiltered array:", punchesFiltered);
 
-        if (afternoonEntry) {
-          entryAfternoonCell.textContent = afternoonEntry.time;
-        }
+        
 
-        if (afternoonExit) {
-          exitAfternoonCell.textContent = afternoonExit.time;
-        }
+        
 
-        var totalMorningSeconds = 0;
-        var totalAfternoonSeconds = 0;
-
-        if (entryMorningCell.textContent !== "-" && exitMorningCell.textContent !== "-") {
-          var morningEntryTime = moment(entryMorningCell.textContent, "HH:mm");
-          var morningExitTime = moment(exitMorningCell.textContent, "HH:mm");
-          totalMorningSeconds = morningExitTime.diff(morningEntryTime, "seconds");
-        }
-
-        if (entryAfternoonCell.textContent !== "-" && exitAfternoonCell.textContent !== "-") {
-          var afternoonEntryTime = moment(entryAfternoonCell.textContent, "HH:mm");
-          var afternoonExitTime = moment(exitAfternoonCell.textContent, "HH:mm");
-          totalAfternoonSeconds = afternoonExitTime.diff(afternoonEntryTime, "seconds");
-        }
-
-        var totalSeconds = totalMorningSeconds + totalAfternoonSeconds;
-        var extraSeconds = totalSeconds - expectedWorkingHours;
-        var absentSeconds = expectedWorkingHours - totalSeconds;
-
-        if (currentDate.day() === 0 || currentDate.day() === 6) {
-          totalSeconds = 0;
-          extraSeconds = 0;
-        } else if (holidays.includes(currentDate.format("DD/MM/YYYY"))) {
-          totalSeconds = 0;
-          extraSeconds = 0;
-        } else {
-          totalRegularHours += totalSeconds > 0 ? totalSeconds : 0;
-          totalExtraHours += extraSeconds > 0 ? extraSeconds : 0;
-          totalAbsentHours += absentSeconds > 0 ? absentSeconds : 0;
-        }
-
-        totalHoursCell.textContent = secondsToTimeString(totalSeconds);
-        extraHoursCell.textContent = extraSeconds > 0 ? secondsToTimeString(extraSeconds) : "00:00:00";
-
-        if (holidays.includes(currentDate.format("DD/MM/YYYY"))) {
-          absentHoursCell.textContent = "Feriado";
-          editCell.disabled = true;
-        } else if (currentDate.day() === 0 || currentDate.day() === 6) {
-          absentHoursCell.textContent = "00:00:00";
-        } else {
-          absentHoursCell.textContent = absentSeconds > 0 ? secondsToTimeString(absentSeconds) : "00:00:00";
-          absentHoursCell.classList.toggle("absent", absentSeconds > 0);
-        }
-
-        if (currentDate.day() === 0 || currentDate.day() === 6) {
-          row.classList.add("day-of-week");
-        }
-
-        row.appendChild(dateCell);
-        row.appendChild(dayOfWeekCell);
-        row.appendChild(entryMorningCell);
-        row.appendChild(exitMorningCell);
-        row.appendChild(entryAfternoonCell);
-        row.appendChild(exitAfternoonCell);
-        row.appendChild(totalHoursCell);
-        row.appendChild(extraHoursCell);
-        row.appendChild(absentHoursCell);
-        row.appendChild(editCell); 
-        table.appendChild(row);
-
-        currentDate.add(1, "day");
       }
-
-      var totalsRow = document.createElement("tr");
-      totalsRow.classList.add("totals-row");
-
-      var totalsLabelCell = document.createElement("td");
-      totalsLabelCell.textContent = "Total:";
-      totalsLabelCell.classList.add("blue-counter"); // Add the "blue-counter" class
-      totalsLabelCell.colSpan = 6;
-      totalsRow.appendChild(totalsLabelCell);
-
-     var totalRegularHoursCell = document.createElement("td");
-     totalRegularHoursCell.textContent = secondsToTimeString(totalRegularHours);
-     totalRegularHoursCell.classList.add("blue-counter"); // Add the "blue-counter" class
-     totalsRow.appendChild(totalRegularHoursCell);
-
-      var totalExtraHoursCell = document.createElement("td");
-      totalExtraHoursCell.textContent = secondsToTimeString(totalExtraHours);
-      totalExtraHoursCell.classList.add("blue-counter"); // Add the "blue-counter" class
-      totalsRow.appendChild(totalExtraHoursCell);
-
-      var totalAbsentHoursCell = document.createElement("td");
-      totalAbsentHoursCell.textContent = secondsToTimeString(totalAbsentHours);
-      totalAbsentHoursCell.classList.add("blue-counter"); // Add the "blue-counter" class
-      totalsRow.appendChild(totalAbsentHoursCell);
-
-      table.appendChild(totalsRow);
     }
 
-    employeeReport.appendChild(table);
-  }
-}
-
+    
 
 
     function secondsToTimeString(totalSeconds) {
@@ -808,13 +779,7 @@ text-align:center;
       return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
-    function openEditModal(event) {
-      var date = event.target.getAttribute("data-date");
-      var employeeId = event.target.getAttribute("data-employeeId");
-
-      
-      console.log("Edit button clicked for date:", date, "and employeeId:", employeeId);
-    }
+    
     function getEmployeeById(employeeId) {
       return employees.find(function (employee) {
         return employee.id === employeeId;
@@ -865,10 +830,10 @@ text-align:center;
       }, 3000);
     }
 
-    
+
     function addInfoToPDF(tempContainer) {
       var logoImg = document.createElement("img");
-      logoImg.src = "./Logo Rosseto.jpg"; 
+      logoImg.src = "./Logo Rosseto.jpg";
       logoImg.width = 180;
       tempContainer.appendChild(logoImg);
 
@@ -888,26 +853,26 @@ text-align:center;
       tempContainer.appendChild(cnpj);
     }
 
-       function addEmployeeInfoToPDF(tempContainer, colaborador) {
+    function addEmployeeInfoToPDF(tempContainer, colaborador) {
       var signatureLine = document.createElement("p");
       signatureLine.innerText = "______________________________";
-      signatureLine.style.marginTop = "50px" 
+      signatureLine.style.marginTop = "50px"
       tempContainer.appendChild(signatureLine);
 
       var employeeName = document.createElement("h3");
-      employeeName.innerText = ` ${colaborador.nome}`; 
+      employeeName.innerText = ` ${colaborador.nome}`;
       employeeName.style.fontSize = "15.5px"
       employeeName.style.fontFamily = "Calibri, Arial, sans-serif"
       tempContainer.appendChild(employeeName);
 
       var cpf = document.createElement("h3");
-      cpf.innerText = `CPF:${colaborador.cpf}`; 
+      cpf.innerText = `CPF:${colaborador.cpf}`;
       cpf.style.fontSize = "15.5px"
       cpf.style.fontFamily = "Calibri, Arial, sans-serif"
       tempContainer.appendChild(cpf);
     }
 
-     function generatePDF() {
+    function generatePDF() {
       var editButtons = document.getElementsByClassName("edit-button");
       for (var i = 0; i < editButtons.length; i++) {
         editButtons[i].style.display = "none";
@@ -943,14 +908,13 @@ text-align:center;
             return;
           }
 
-          var currentDate = getFormattedDate(); // Obtém a data formatada (exemplo: "07/2023")
+          var currentDate = getFormattedDate();
 
-          // Cria um elemento para mostrar o mês e o ano
           var monthYear = document.createElement("h3");
           monthYear.innerText = "Mês " + currentDate;
           monthYear.style.position = "absolute";
-          monthYear.style.top = "10mm"; // Ajuste a posição vertical conforme necessário
-          monthYear.style.right = "10mm"; // Ajuste a posição horizontal conforme necessário
+          monthYear.style.top = "10mm";
+          monthYear.style.right = "10mm";
           monthYear.style.fontSize = "14px";
           monthYear.style.fontFamily = "Calibri, Arial, sans-serif";
           tempContainer.appendChild(monthYear);
@@ -1012,6 +976,8 @@ text-align:center;
 
       var modal = document.getElementById("edit-modal");
       modal.style.display = "block";
+
+      
     }
 
     function closeEditModal() {
@@ -1020,41 +986,62 @@ text-align:center;
     }
 
     function saveEdit() {
-      var date = document.getElementById("edit-date").textContent;
-      var employeeId = document.getElementById("edit-employeeId").textContent;
-      var entryMorning = document.getElementById("edit-entryMorning").value;
-      var exitMorning = document.getElementById("edit-exitMorning").value;
-      var entryAfternoon = document.getElementById("edit-entryAfternoon").value;
-      var exitAfternoon = document.getElementById("edit-exitAfternoon").value;
+  var date = document.getElementById("edit-date").textContent;
+  var employeeId = document.getElementById("edit-employeeId").textContent;
+  var entryMorning = document.getElementById("edit-entryMorning").value;
+  var exitMorning = document.getElementById("edit-exitMorning").value;
+  var entryAfternoon = document.getElementById("edit-entryAfternoon").value;
+  var exitAfternoon = document.getElementById("edit-exitAfternoon").value;
 
-      var enteredPassword = prompt("Digite sua senha:");
+  var enteredPassword = prompt("Digite sua senha:");
+  var correctPassword = "30410";
 
-      var correctPassword = "30410";
+  console.log("Captured date:", date);
+console.log("Captured employeeId:", employeeId);
 
-      if (enteredPassword === correctPassword) {
-        punches.forEach(function (punch) {
-          if (punch.date === date && punch.employeeId === employeeId) {
-            if (punch.punchType === "entrada_manha") {
-              punch.time = entryMorning !== "" ? entryMorning : "";
-            } else if (punch.punchType === "saida_manha") {
-              punch.time = exitMorning !== "" ? exitMorning : "";
-            } else if (punch.punchType === "entrada_tarde") {
-              punch.time = entryAfternoon !== "" ? entryAfternoon : "";
-            } else if (punch.punchType === "saida_tarde") {
-              punch.time = exitAfternoon !== "" ? exitAfternoon : "";
-            }
-          }
-        });
+  if (enteredPassword === correctPassword) {
+    var punchUpdated = false; // Variable to track whether a punch was updated
 
-        localStorage.setItem("punches", JSON.stringify(punches));
+    punches.forEach(function (punch) {
+      if (punch.date === date && punch.employeeId === employeeId) {
+        if (punch.punchType === "entrada_manha") {
+          punch.time = entryMorning !== "" ? entryMorning : "";
+        } else if (punch.punchType === "saida_manha") {
+          punch.time = exitMorning !== "" ? exitMorning : "";
+        } else if (punch.punchType === "entrada_tarde") {
+          punch.time = entryAfternoon !== "" ? entryAfternoon : "";
+        } else if (punch.punchType === "saida_tarde") {
+          punch.time = exitAfternoon !== "" ? exitAfternoon : "";
+        }
 
-        closeEditModal();
-
-        generateReport();
-      } else {
-        alert("Senha Incorreta");
+        punchUpdated = true; // Mark that a punch was updated
       }
+    });
+
+    // If no punch was updated, create a new punch
+    if (!punchUpdated) {
+      punches.push({
+        employeeId: employeeId,
+        date: date,
+        time: entryMorning !== "" ? entryMorning : exitMorning !== "" ? exitMorning : entryAfternoon !== "" ? entryAfternoon : exitAfternoon,
+        // You might need to set the appropriate punchType here based on the cell edited
+      });
     }
+
+    localStorage.setItem("punches", JSON.stringify(punches));
+
+    console.log("Updated punches array:", punches);
+
+
+    closeEditModal();
+
+    generateReport();
+  } else {
+    alert("Senha Incorreta");
+  }
+}
+
+    
 
 
     function registerAutoPunch() {
@@ -1130,7 +1117,7 @@ text-align:center;
     var diasFalta = [];
 
     function adicionarDiasFalta(selectedEmployeeId) {
-      var currentDate = moment(); 
+      var currentDate = moment();
       var punchesFiltered = punches.filter(function (punch) {
         return punch.employeeId === selectedEmployeeId;
       });
@@ -1152,145 +1139,143 @@ text-align:center;
       diasFalta = [];
     }
 
-   function registrarPonto() {
-  var selectedEmployeeId = document.getElementById("employee-select").value;
+    function registrarPonto() {
+      var selectedEmployeeId = document.getElementById("employee-select").value;
 
-  if (diasFalta.length > 0) {
-    adicionarDiasFalta(selectedEmployeeId);
-  }
-
-  var currentDate = moment();
-  var currentDateFormatted = currentDate.format("DD/MM/YYYY");
-
-  var yesterdayDate = currentDate.clone().subtract(1, "day");
-  var yesterdayDateFormatted = yesterdayDate.format("DD/MM/YYYY");
-
-  var punchesFiltered = punches.filter(function (punch) {
-    return punch.employeeId === selectedEmployeeId;
-  });
-
-  var hasPunchToday = punchesFiltered.some(function (punch) {
-    return punch.date === currentDateFormatted;
-  });
-
-  var hasPunchYesterday = punchesFiltered.some(function (punch) {
-    return punch.date === yesterdayDateFormatted;
-  });
-
-  if (!hasPunchToday && hasPunchYesterday) {
-    punches.push({
-      employeeId: selectedEmployeeId,
-      employeeName: getEmployeeById(selectedEmployeeId).name,
-      date: currentDateFormatted,
-      time: "00:00:00", 
-      punchType: "falta" 
-    });
-
-    localStorage.setItem("punches", JSON.stringify(punches));
-
-    marcarFalta(currentDateFormatted);
-  }
-
-  var employeeReturned = diasFalta.indexOf(currentDateFormatted);
-  if (employeeReturned !== -1) {
-    diasFalta.splice(employeeReturned, 1);
-  }
-}
-
-
-
-
-function exportToExcel() {
-  var workbook = XLSX.utils.book_new();
-  var punchesSheet = XLSX.utils.json_to_sheet(punches);
-  XLSX.utils.book_append_sheet(workbook, punchesSheet, "Registro de Ponto");
-
-  var currentDate = new Date();
-  var day = currentDate.getDate();
-  var month = currentDate.getMonth() + 1;
-  var year = currentDate.getFullYear();
-  var formattedDate = day + "-" + month + "-" + year;
-  var exportFileName = "backup_" + formattedDate + ".xlsx";
-
-  XLSX.writeFile(workbook, exportFileName);
-}
-
-function importFromExcel() {
-  var input = document.createElement("input");
-  input.type = "file";
-  input.accept = ".xls, .xlsx";
-  input.onchange = function (e) {
-    var file = e.target.files[0];
-
-    if (!file) {
-      alert("Nenhum arquivo selecionado.");
-      return;
-    }
-
-    var reader = new FileReader();
-
-    reader.onload = function (e) {
-      try {
-        var data = new Uint8Array(e.target.result);
-        var workbook = XLSX.read(data, { type: "array" });
-        var punchesSheet = workbook.Sheets[workbook.SheetNames[0]];
-        var punchesData = XLSX.utils.sheet_to_json(punchesSheet, { raw: false });
-
-        if (confirm("Tem certeza de que deseja importar os novos dados? Isso substituirá os dados existentes.")) {
-          punches = punchesData;
-          localStorage.setItem("punches", JSON.stringify(punches));
-
-          generateReport();
-
-          alert("Dados importados com sucesso!");
-        }
-      } catch (error) {
-        alert("Erro ao importar o arquivo. Verifique se o formato está correto.");
+      if (diasFalta.length > 0) {
+        adicionarDiasFalta(selectedEmployeeId);
       }
-    };
 
-    reader.readAsArrayBuffer(file);
-  };
+      var currentDate = moment();
+      var currentDateFormatted = currentDate.format("DD/MM/YYYY");
 
-  input.click();
-}
+      var yesterdayDate = currentDate.clone().subtract(1, "day");
+      var yesterdayDateFormatted = yesterdayDate.format("DD/MM/YYYY");
 
-function scheduleExport() {
-  var targetHour = 20;
-  var targetMinute = 45;
+      var punchesFiltered = punches.filter(function (punch) {
+        return punch.employeeId === selectedEmployeeId;
+      });
 
-  var exportInterval = setInterval(function() {
-    var now = new Date();
-    var currentHour = now.getHours();
-    var currentMinute = now.getMinutes();
+      var hasPunchToday = punchesFiltered.some(function (punch) {
+        return punch.date === currentDateFormatted;
+      });
 
-    if (currentHour === targetHour && currentMinute === targetMinute) {
-      exportToExcel();
+      var hasPunchYesterday = punchesFiltered.some(function (punch) {
+        return punch.date === yesterdayDateFormatted;
+      });
+
+      if (!hasPunchToday && hasPunchYesterday) {
+        punches.push({
+          employeeId: selectedEmployeeId,
+          employeeName: getEmployeeById(selectedEmployeeId).name,
+          date: currentDateFormatted,
+          time: "00:00:00",
+          punchType: "falta"
+        });
+
+        localStorage.setItem("punches", JSON.stringify(punches));
+
+        marcarFalta(currentDateFormatted);
+      }
+
+      var employeeReturned = diasFalta.indexOf(currentDateFormatted);
+      if (employeeReturned !== -1) {
+        diasFalta.splice(employeeReturned, 1);
+      }
     }
-  }, 60000); 
-
-scheduleExport();
-
-}
 
 
 
-        function updateClock() {
-            const now = new Date();
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
 
-            const timeString = `${hours}:${minutes}:${seconds}`;
-            document.getElementById('clock').textContent = timeString;
+    function exportToExcel() {
+      var workbook = XLSX.utils.book_new();
+      var punchesSheet = XLSX.utils.json_to_sheet(punches);
+      XLSX.utils.book_append_sheet(workbook, punchesSheet, "Registro de Ponto");
+
+      var currentDate = new Date();
+      var day = currentDate.getDate();
+      var month = currentDate.getMonth() + 1;
+      var year = currentDate.getFullYear();
+      var formattedDate = day + "-" + month + "-" + year;
+      var exportFileName = "backup_" + formattedDate + ".xlsx";
+
+      XLSX.writeFile(workbook, exportFileName);
+    }
+
+    function importFromExcel() {
+      var input = document.createElement("input");
+      input.type = "file";
+      input.accept = ".xls, .xlsx";
+      input.onchange = function (e) {
+        var file = e.target.files[0];
+
+        if (!file) {
+          alert("Nenhum arquivo selecionado.");
+          return;
         }
 
-        // Atualizar o relógio a cada segundo
-        setInterval(updateClock, 1000);
+        var reader = new FileReader();
 
-        // Iniciar o relógio imediatamente ao carregar a página
-        updateClock();
+        reader.onload = function (e) {
+          try {
+            var data = new Uint8Array(e.target.result);
+            var workbook = XLSX.read(data, { type: "array" });
+            var punchesSheet = workbook.Sheets[workbook.SheetNames[0]];
+            var punchesData = XLSX.utils.sheet_to_json(punchesSheet, { raw: false });
+
+            if (confirm("Tem certeza de que deseja importar os novos dados? Isso substituirá os dados existentes.")) {
+              punches = punchesData;
+              localStorage.setItem("punches", JSON.stringify(punches));
+
+              generateReport();
+
+              alert("Dados importados com sucesso!");
+            }
+          } catch (error) {
+            alert("Erro ao importar o arquivo. Verifique se o formato está correto.");
+          }
+        };
+
+        reader.readAsArrayBuffer(file);
+      };
+
+      input.click();
+    }
+
+    function scheduleExport() {
+      var targetHour = 20;
+      var targetMinute = 45;
+
+      var exportInterval = setInterval(function () {
+        var now = new Date();
+        var currentHour = now.getHours();
+        var currentMinute = now.getMinutes();
+
+        if (currentHour === targetHour && currentMinute === targetMinute) {
+          exportToExcel();
+        }
+      }, 60000);
+
+      scheduleExport();
+
+    }
+    function updateClock() {
+      const now = new Date();
+      const hours = String(now.getHours()).padStart(2, '0');
+      const minutes = String(now.getMinutes()).padStart(2, '0');
+      const seconds = String(now.getSeconds()).padStart(2, '0');
+
+      const timeString = `${hours}:${minutes}:${seconds}`;
+      document.getElementById('clock').textContent = timeString;
+    }
+
+    setInterval(updateClock, 1000);
+
+    updateClock();
+
+
     
+
 
   </script>
 
@@ -1301,4 +1286,3 @@ scheduleExport();
 </body>
 
 </html>
-
