@@ -225,7 +225,7 @@
     border-radius: 10px;
     font-size: 2rem;
     width: 200px;
-    margin:auto;
+    margin: auto;
     text-align: center;
     font-family: Arial, sans-serif;
     align-items: center;
@@ -762,14 +762,14 @@
         employeeReport.appendChild(table);
         console.log("punchesFiltered array:", punchesFiltered);
 
-        
 
-        
+
+
 
       }
     }
 
-    
+
 
 
     function secondsToTimeString(totalSeconds) {
@@ -779,7 +779,7 @@
       return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
     }
 
-    
+
     function getEmployeeById(employeeId) {
       return employees.find(function (employee) {
         return employee.id === employeeId;
@@ -976,8 +976,6 @@
 
       var modal = document.getElementById("edit-modal");
       modal.style.display = "block";
-
-      
     }
 
     function closeEditModal() {
@@ -986,63 +984,71 @@
     }
 
     function saveEdit() {
-  var date = document.getElementById("edit-date").textContent;
-  var employeeId = document.getElementById("edit-employeeId").textContent;
-  var entryMorning = document.getElementById("edit-entryMorning").value;
-  var exitMorning = document.getElementById("edit-exitMorning").value;
-  var entryAfternoon = document.getElementById("edit-entryAfternoon").value;
-  var exitAfternoon = document.getElementById("edit-exitAfternoon").value;
+      var date = document.getElementById("edit-date").textContent;
+      var employeeId = document.getElementById("edit-employeeId").textContent;
 
-  var enteredPassword = prompt("Digite sua senha:");
-  var correctPassword = "30410";
+      var enteredPassword = prompt("Digite sua senha:");
+      var correctPassword = "30410";
 
-  console.log("Captured date:", date);
-console.log("Captured employeeId:", employeeId);
+      console.log("Captured date:", date);
+      console.log("Captured employeeId:", employeeId);
 
-  if (enteredPassword === correctPassword) {
-    var punchUpdated = false; // Variable to track whether a punch was updated
+      if (enteredPassword === correctPassword) {
+        punches = punches.filter(function (punch) {
+          return !(punch.date === date && punch.employeeId === employeeId);
+        });
 
-    punches.forEach(function (punch) {
-      if (punch.date === date && punch.employeeId === employeeId) {
-        if (punch.punchType === "entrada_manha") {
-          punch.time = entryMorning !== "" ? entryMorning : "";
-        } else if (punch.punchType === "saida_manha") {
-          punch.time = exitMorning !== "" ? exitMorning : "";
-        } else if (punch.punchType === "entrada_tarde") {
-          punch.time = entryAfternoon !== "" ? entryAfternoon : "";
-        } else if (punch.punchType === "saida_tarde") {
-          punch.time = exitAfternoon !== "" ? exitAfternoon : "";
+        var entryMorningValue = document.getElementById("edit-entryMorning").value;
+        if (entryMorningValue !== "") {
+          punches.push({
+            employeeId: employeeId,
+            date: date,
+            punchType: "entrada_manha",
+            time: entryMorningValue
+          });
         }
 
-        punchUpdated = true; // Mark that a punch was updated
+        var exitMorningValue = document.getElementById("edit-exitMorning").value;
+        if (exitMorningValue !== "") {
+          punches.push({
+            employeeId: employeeId,
+            date: date,
+            punchType: "saida_manha",
+            time: exitMorningValue
+          });
+        }
+
+        var entryAfternoonValue = document.getElementById("edit-entryAfternoon").value;
+        if (entryAfternoonValue !== "") {
+          punches.push({
+            employeeId: employeeId,
+            date: date,
+            punchType: "entrada_tarde",
+            time: entryAfternoonValue
+          });
+        }
+
+        var exitAfternoonValue = document.getElementById("edit-exitAfternoon").value;
+        if (exitAfternoonValue !== "") {
+          punches.push({
+            employeeId: employeeId,
+            date: date,
+            punchType: "saida_tarde",
+            time: exitAfternoonValue
+          });
+        }
+
+        localStorage.setItem("punches", JSON.stringify(punches));
+
+        console.log("Updated punches array:", punches);
+
+        closeEditModal();
+
+        generateReport();
+      } else {
+        alert("Senha Incorreta");
       }
-    });
-
-    // If no punch was updated, create a new punch
-    if (!punchUpdated) {
-      punches.push({
-        employeeId: employeeId,
-        date: date,
-        time: entryMorning !== "" ? entryMorning : exitMorning !== "" ? exitMorning : entryAfternoon !== "" ? entryAfternoon : exitAfternoon,
-        // You might need to set the appropriate punchType here based on the cell edited
-      });
     }
-
-    localStorage.setItem("punches", JSON.stringify(punches));
-
-    console.log("Updated punches array:", punches);
-
-
-    closeEditModal();
-
-    generateReport();
-  } else {
-    alert("Senha Incorreta");
-  }
-}
-
-    
-
 
     function registerAutoPunch() {
       var today = new Date();
@@ -1111,8 +1117,6 @@ console.log("Captured employeeId:", employeeId);
         }
       }
     }
-
-
 
     var diasFalta = [];
 
@@ -1184,9 +1188,6 @@ console.log("Captured employeeId:", employeeId);
       }
     }
 
-
-
-
     function exportToExcel() {
       var workbook = XLSX.utils.book_new();
       var punchesSheet = XLSX.utils.json_to_sheet(punches);
@@ -1241,11 +1242,7 @@ console.log("Captured employeeId:", employeeId);
 
       input.click();
     }
-
-    function scheduleExport() {
-      var targetHour = 20;
-      var targetMinute = 45;
-
+    function scheduleExport(targetHour, targetMinute) {
       var exportInterval = setInterval(function () {
         var now = new Date();
         var currentHour = now.getHours();
@@ -1256,9 +1253,14 @@ console.log("Captured employeeId:", employeeId);
         }
       }, 60000);
 
-      scheduleExport();
-
     }
+
+    var targetHour = 20;
+    var targetMinute = 10;
+
+    scheduleExport(targetHour, targetMinute);
+
+
     function updateClock() {
       const now = new Date();
       const hours = String(now.getHours()).padStart(2, '0');
@@ -1274,7 +1276,7 @@ console.log("Captured employeeId:", employeeId);
     updateClock();
 
 
-    
+
 
 
   </script>
